@@ -1,0 +1,31 @@
+[
+  {
+    "namespace": "experiments.inspectedNode",
+    "functions": [
+      {
+        "name": "getStyle",
+        "type": "function",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "clientId"
+          }
+        ],
+        "async": true
+      }
+    ],
+    "events": [
+      {
+        "name": "onChange",
+        "type": "function",
+        "parameters": [],
+        "extraParameters": [
+          {
+            "type": "string",
+            "name": "clientId"
+          }
+        ]
+      }
+    ]
+  }
+]

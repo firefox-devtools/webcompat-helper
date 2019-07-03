@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "name": "webcompat-helper",
+  "version": "1.0",
+  "description": "",
+  "applications": {
+    "gecko": {
+      "id": "webcompat-helper@firefox-dev.tools"
+    }
+  },
+  "permissions": [
+  ],
+  "background": {
+    "scripts": [
+      "experiments/inspectedNode/api-server.js"
+    ]
+  },
+  "devtools_page": "devtools.html",
+  "experiment_apis": {
+    "inspectedNode": {
+      "schema": "experiments/inspectedNode/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/inspectedNode/api.js",
+        "paths": [["experiments", "inspectedNode"]]
+      }
+    }
+  },
+  "web_accessible_resources": [
+    "images/error.svg",
+    "images/warning.svg"
+  ]
+}
