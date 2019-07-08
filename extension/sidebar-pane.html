@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.8;
+    }
+
+    header {
+      color: #0c0c0d;
+      background-color: #f9f9fa;
+      border-bottom: 1px solid #e0e0e2;
+      padding-block: 2px;
+      padding-inline-start: 1em;
+    }
+
+    header:not(:first-child) {
+      border-top: 1px solid #e0e0e2;
+    }
+
+    li {
+      margin-block-end: 4px;
+      list-style: none;
+    }
+
+    li.warning {
+      list-style-image: url(./images/warning.svg);
+    }
+
+    li.information {
+      list-style-image: url(./images/information.svg);
+    }
+
+    .property {
+      font-weight: 800;
+      color: #0074e8;
+    }
+
+    .alias:not(:last-child)::after {
+      content: ", ";
+    }
+
+    .browser {
+      margin-inline-start: 4px;
+    }
+
+    .browser.firefox {
+      color: #a36223;
+    }
+
+    .browser.firefox_android {
+      color: #a36223;
+    }
+
+    .browser.chrome {
+      color: #3f77bb;
+    }
+
+    .browser.chrome_android {
+      color: #3f77bb;
+    }
+
+    .browser.safari {
+      color: #666;
+    }
+
+    .browser.safari_ios {
+      color: #666;
+    }
+
+    .browser.edge {
+      color: #385884;
+    }
+
+    .browser.edge_mobile {
+      color: #385884;
+    }
+
+    .browser .versions::after {
+      content: ")";
+    }
+
+    .browser .versions::before {
+      content: "(";
+    }
+
+    .browser .versions .version:not(:last-child)::after {
+      content: ", ";
+    }
+
+    .deprecated, .experimental {
+      font-weight: 600;
+    }
+    </style>
+    <script src="experiments/inspectedNode/api-client.js"></script>
+    <script type="module" src="sidebar-pane.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>Issues at selected node</header>
+      <section></section>
+    </main>
+  </body>
+</html>
