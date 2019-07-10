@@ -1,8 +1,8 @@
 "use strict";
 
 import { WebCompat } from "./lib/webcompat.js";
-import webCompatData from "./webcompat-data.js";
-const _webcompat = new WebCompat(webCompatData);
+import _webCompatData from "./webcompat-data.js";
+const _webcompat = new WebCompat(_webCompatData);
 const _targetBrowsers = _getTargetBrowsers();
 
 async function _update() {
@@ -47,20 +47,36 @@ function _renderIssue(issue) {
 }
 
 function _renderSubject(issue) {
-  const { type, property, aliases } = issue;
+  const { type } = issue;
   const subjectEl = document.createElement("span");
 
   switch (type) {
     case WebCompat.ISSUE_TYPE.CSS_PROPERTY: {
-      const element = _renderTerms([property], ["property"]);
-      subjectEl.appendChild(element);
+      subjectEl.append(
+        _renderTerm(issue.property, ["property"])
+      );
       break;
     }
     case WebCompat.ISSUE_TYPE.CSS_PROPERTY_ALIASES: {
-      const element = _renderTerms(aliases, ["property", "alias"]);
-      subjectEl.appendChild(element);
-      const alias = aliases.length === 1 ? "alias" : "aliases";
-      subjectEl.appendChild(_renderTerm(` ${ alias }`));
+      subjectEl.append(
+        _renderTerms(issue.aliases, ["property", "alias"]),
+        _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
+      );
+      break;
+    }
+    case WebCompat.ISSUE_TYPE.CSS_VALUE: {
+      subjectEl.append(
+        _renderTerm(`${issue.property}: `),
+        _renderTerm(issue.value, ["value"])
+      );
+      break;
+    }
+    case WebCompat.ISSUE_TYPE.CSS_VALUE_ALIASES: {
+      subjectEl.append(
+        _renderTerm(`${issue.property}: `),
+        _renderTerms(issue.aliases, ["value", "alias"]),
+        _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
+      );
       break;
     }
   }
@@ -82,13 +98,12 @@ function _renderPredicate(issue) {
     predicateEl.appendChild(warningEl);
   }
 
-  if (unsupportedBrowsers) {
+  if (unsupportedBrowsers.length) {
     if (warningEl) {
       predicateEl.appendChild(_renderTerm(" and "));
     }
 
-    const auxiliaryVerb =
-      type === WebCompat.ISSUE_TYPE.CSS_PROPERTY || aliases.length === 1 ? "does" : "do";
+    const auxiliaryVerb = !aliases || aliases.length === 1 ? "does" : "do";
     predicateEl.appendChild(_renderTerm(` ${ auxiliaryVerb } not support`));
     predicateEl.appendChild(_renderBrowsersElement(unsupportedBrowsers));
   }
@@ -106,8 +121,7 @@ function _renderWarning(issue) {
 
   const warningEl = document.createElement("span");
 
-  const connection =
-    type === WebCompat.ISSUE_TYPE.CSS_PROPERTY || aliases.length === 1 ? " is " : " are ";
+  const connection = !aliases || aliases.length === 1 ? " is " : " are ";
   warningEl.appendChild(_renderTerm(connection));
 
   if (deprecated) {
@@ -167,16 +181,16 @@ function _renderTerms(terms, classes) {
   const containerEl = document.createElement("span");
 
   for (const term of terms) {
-    const termEl = _renderTerm(term);
-    termEl.classList.add(...classes);
+    const termEl = _renderTerm(term, classes);
     containerEl.appendChild(termEl);
   }
 
   return containerEl;
 }
 
-function _renderTerm(text) {
+function _renderTerm(text, classes = []) {
   const termEl = document.createElement("span");
+  termEl.classList.add(...classes);
   termEl.textContent = text;
   return termEl;
 }

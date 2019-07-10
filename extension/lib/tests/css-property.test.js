@@ -1,5 +1,5 @@
 import { WebCompat } from "../webcompat";
-import webCompatData from "./webcompat-data.js";
+import webCompatData from "../../webcompat-data.js";
 const webcompat = new WebCompat(webCompatData);
 
 const FIREFOX_69 = {
@@ -21,7 +21,6 @@ test("a supported property", () => {
   const declarations = [
     {
       name: "background-color",
-      value: "lime",
     }
   ];
 
@@ -33,11 +32,9 @@ test("some supported properties", () => {
   const declarations = [
     {
       name: "background-color",
-      value: "lime",
     },
     {
       name: "color",
-      value: "lime",
     }
   ];
 
@@ -49,7 +46,6 @@ test("a non supported property", () => {
   const declarations = [
     {
       name: "grid-column",
-      value: "1",
     }
   ];
 
@@ -78,6 +74,7 @@ test("an invalid property", () => {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     invalid: true,
     property: "invalid-property",
+    unsupportedBrowsers: [],
   };
   assertIssue(issues[0], expectedIssue);
 });
@@ -86,7 +83,6 @@ test("a deprecated property", () => {
   const declarations = [
     {
       name: "clip",
-      value: "auto",
     }
   ];
 
@@ -97,6 +93,7 @@ test("a deprecated property", () => {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     property: "clip",
     deprecated: true,
+    unsupportedBrowsers: [],
   };
   assertIssue(issues[0], expectedIssue);
 });
@@ -105,7 +102,6 @@ test("a experimental property", () => {
   const declarations = [
     {
       name: "border-block-color",
-      value: "lime",
     }
   ];
 
@@ -116,6 +112,7 @@ test("a experimental property", () => {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     property: "border-block-color",
     experimental: true,
+    unsupportedBrowsers: [],
   };
   assertIssue(issues[0], expectedIssue);
 });
@@ -124,7 +121,6 @@ test("a property having some issues", () => {
   const declarations = [
     {
       name: "font-variant-alternates",
-      value: "normal",
     }
   ];
 
@@ -145,7 +141,6 @@ test("a aliased property which does not support all", () => {
   const declarations = [
     {
       name: "-moz-user-select",
-      value: "auto",
     }
   ];
 
@@ -167,11 +162,9 @@ test("aliased properties which support all", () => {
   const declarations = [
     {
       name: "-moz-user-select",
-      value: "auto",
     },
     {
       name: "-webkit-user-select",
-      value: "auto",
     }
   ];
 
@@ -184,6 +177,7 @@ test("aliased properties which support all", () => {
     property: "user-select",
     aliases: ["-moz-user-select", "-webkit-user-select"],
     experimental: true,
+    unsupportedBrowsers: [],
   };
   assertIssue(issues[0], expectedIssue);
 });
