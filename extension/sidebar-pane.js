@@ -1,9 +1,12 @@
 "use strict";
 
+import { UserSettings } from "./user-settings.js";
 import { WebCompat } from "./lib/webcompat.js";
 import _webCompatData from "./webcompat-data.js";
+
 const _webcompat = new WebCompat(_webCompatData);
-const _targetBrowsers = _getTargetBrowsers();
+const _userSettings = new UserSettings(_webCompatData);
+let _targetBrowsers = null;
 
 async function _update() {
   const issues = [];
@@ -148,18 +151,18 @@ function _renderBrowsersElement(browsers) {
   const browsersEl = document.createElement("span");
 
   const map = {};
-  for (const { brandName, name, version } of browsers) {
-    if (!map[name]) {
-      map[name] = { brandName, versions: [] };
+  for (const { id, name, version } of browsers) {
+    if (!map[id]) {
+      map[id] = { name, versions: [] };
     }
-    map[name].versions.push(version);
+    map[id].versions.push(version);
   }
 
-  for (let name in map) {
-    const { brandName, versions } = map[name];
-    const browserEl = _renderTerm(brandName);
+  for (let id in map) {
+    const { name, versions } = map[id];
+    const browserEl = _renderTerm(name);
     browserEl.classList.add("browser");
-    browserEl.classList.add(name);
+    browserEl.classList.add(id);
 
     const versionsEl = document.createElement("span");
     versionsEl.classList.add("versions");
@@ -195,27 +198,12 @@ function _renderTerm(text, classes = []) {
   return termEl;
 }
 
-function _getTargetBrowsers() {
-  const stauses = ["esr", "current", "beta", "nightly"];
-  const browsers = _webcompat.getBrowsers();
-  const targets = [];
-  for (const name of ["firefox", "firefox_android",
-                      "chrome", "chrome_android",
-                      "safari", "safari_ios",
-                      "edge", "edge_mobile"]) {
-    const { name: brandName, releases } = browsers[name];
-
-    for (const version in releases) {
-      const { status } = releases[version];
-
-      if (stauses.includes(status)) {
-        targets.push({ name, brandName, version, status });
-      }
-    }
-  }
-
-  return targets;
+async function _updateAll() {
+  _targetBrowsers = await _userSettings.getTargetBrowsers();
+  await _update();
 }
 
 browser.experiments.inspectedNode.onChange.addListener(_update);
-_update();
+_userSettings.addChangeListener(_updateAll);
+
+_updateAll();

@@ -3,17 +3,17 @@ import webCompatData from "../../webcompat-data.js";
 const webcompat = new WebCompat(webCompatData);
 
 const FIREFOX_69 = {
-  name: "firefox",
+  id: "firefox",
   version: "69",
 };
 
 const FIREFOX_1 = {
-  name: "firefox",
+  id: "firefox",
   version: "1",
 };
 
 const SAFARI_13 = {
-  name: "safari",
+  id: "safari",
   version: "13",
 };
 
