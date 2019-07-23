@@ -44,6 +44,9 @@ this.inspectedNode = class extends ExtensionAPI {
       await _setupClientIfNeeded(clientId);
 
       const { inspector } = _clients.get(clientId);
+      if (!inspector.selection.isConnected()) {
+        return [];
+      }
 
       const node = inspector.selection.nodeFront;
       const styles =
