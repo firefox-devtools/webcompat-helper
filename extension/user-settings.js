@@ -41,7 +41,16 @@ class UserSettings {
     return browsers || this.getDefaultBrowsers();
   }
 
-  async saveTargetBrowsers(browsers) {
+  async isCSSValueEnabled() {
+    const { isCSSValueEnabled } = await browser.storage.local.get("isCSSValueEnabled");
+    return !!isCSSValueEnabled;
+  }
+
+  async setCSSValueEnabled(isCSSValueEnabled) {
+    await browser.storage.local.set({ isCSSValueEnabled });
+  }
+
+  async setTargetBrowsers(browsers) {
     await browser.storage.local.set({ browsers });
   }
 
