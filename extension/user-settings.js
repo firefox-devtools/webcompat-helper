@@ -11,11 +11,32 @@ const TARGET_BROWSER_STATUSES = [
   "esr", "current", "beta", "nightly"
 ]
 
+const _SETTING_TYPE = {
+  TARGET_BROWSER: "TARGET_BROWSER",
+  CSS_VALUE_ENABLED: "CSS_VALUE_ENABLED",
+};
+
 class UserSettings {
+  static get SETTING_TYPE() {
+    return _SETTING_TYPE;
+  }
+
   constructor(webCompatData) {
     this._webCompatData = webCompatData;
     this._onChange = this._onChange.bind(this);
     browser.storage.onChanged.addListener(this._onChange);
+  }
+
+  addChangeListener(type, listener) {
+    if (!this._listenersMap) {
+      this._listenersMap = new Map();
+    }
+
+    if (this._listenersMap.has(type)) {
+      this._listenersMap.get(type).push(listener);
+    } else {
+      this._listenersMap.set(type, [listener]);
+    }
   }
 
   getDefaultBrowsers() {
@@ -54,20 +75,19 @@ class UserSettings {
     await browser.storage.local.set({ browsers });
   }
 
-  addChangeListener(listener) {
-    if (!this._listeners) {
-      this._listeners = [listener];
-    } else {
-      this._listeners.push(listener);
-    }
-  }
-
   _onChange(changes, area) {
-    if (!this._listeners || area !== "local" || !changes.browsers) {
+    if (!this._listenersMap || area !== "local") {
       return;
     }
 
-    for (const listener of this._listeners) {
+    const type = changes.browsers ? _SETTING_TYPE.TARGET_BROWSER
+                                  : _SETTING_TYPE.CSS_VALUE_ENABLED;
+
+    if (!this._listenersMap.has(type)) {
+      return;
+    }
+
+    for (const listener of this._listenersMap.get(type)) {
       listener();
     }
   }
