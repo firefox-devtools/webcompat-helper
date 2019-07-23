@@ -6,17 +6,17 @@ const webcompat = new WebCompat(webCompatData);
 webcompat.setCSSValueEnabled(true);
 
 const FIREFOX_69 = {
-  name: "firefox",
+  id: "firefox",
   version: "69",
 };
 
 const FIREFOX_1 = {
-  name: "firefox",
+  id: "firefox",
   version: "1",
 };
 
 const FIREFOX_4 = {
-  name: "firefox",
+  id: "firefox",
   version: "4",
 };
 

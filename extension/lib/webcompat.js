@@ -57,19 +57,10 @@ class WebCompat {
   }
 
   /**
-   * Return all browsers this can handle.
-   * @return {Object}
-   * @see https://github.com/mdn/browser-compat-data/tree/master/browsers
-   */
-  getBrowsers() {
-    return this._webCompatData.browsers;
-  }
-
-  /**
    * @param {Array} declarations -
    *                e.g. [{ property: "background-color", value: "lime" }, ...]
    * @param {Array} browsers -
-   *                e.g. [{ name: "firefox", brandName: "Firefox", version: "68" }, ...]
+   *                e.g. [{ id: "firefox", name: "Firefox", version: "68" }, ...]
    * @return {Array} issues
    */
   getCSSDeclarationBlockIssues(declarations, browsers) {
@@ -395,7 +386,7 @@ class WebCompat {
       return _SUPPORT_STATE.DATA_NOT_FOUND;
     }
 
-    let supportList = compatTable.support[browser.name];
+    let supportList = compatTable.support[browser.id];
     if (!supportList) {
       return _SUPPORT_STATE.BROWSER_NOT_FOUND;
     }
