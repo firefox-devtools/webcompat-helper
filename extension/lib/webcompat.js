@@ -16,13 +16,6 @@ const _ISSUE_TYPE = {
   CSS_VALUE_ALIASES: "CSS_VALUE_ALIASES",
 };
 
-// MDN Compat data looks not having the data which are supporting all browser.
-// Thus, we define the units of above.
-const _WHITE_TYPE_MAP = {
-  length: ["em", "px", "cm", "mm", "in", "pc", "pt"],
-};
-
-
 class WebCompat {
   static get ISSUE_TYPE() {
     return _ISSUE_TYPE;
@@ -337,8 +330,8 @@ class WebCompat {
         }
       }
 
-      // 1st. Find from white list.
-      if (this._isCSSValueInWhiteList(property, term, type)) {
+      // 1st. Find from special case.
+      if (this._isCSSValueInSpecialCase(property, term, type)) {
         continue;
       }
 
@@ -419,7 +412,7 @@ class WebCompat {
     return !!this._getCompatTable(compatNode, terms);
   }
 
-  _isCSSValueInWhiteList(property, term, type) {
+  _isCSSValueInSpecialCase(property, term, type) {
     const dataTypes = this._getCSSPropertyDataTypes(property);
 
     return dataTypes.find(dataType => {
@@ -429,9 +422,7 @@ class WebCompat {
           return true;
         }
       }
-
-      const whiteTypes = _WHITE_TYPE_MAP[dataType];
-      return whiteTypes ? whiteTypes.includes(type) : false;
+      return false;
     });
   }
 

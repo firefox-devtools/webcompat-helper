@@ -12,6 +12,8 @@ const path = require("path")
 // This operation will not be necessary if this issue below is fixed.
 // https://github.com/mdn/browser-compat-data/issues/4309
 defineCSSPropertiesDataTypes(compatData);
+// Define the units of <length> type which supports all browsers.
+defineCSSLengthType(compatData);
 
 const payload = {
   browsers: compatData.browsers,
@@ -46,5 +48,29 @@ function defineCSSPropertiesDataTypes(compatData) {
   // Map data types to the property which we have the data.
   for (const [property, dataTypes] of Object.entries(CSS_PROPERTY_DATATYPES)) {
     properties[property].__dataTypes = ["global_keywords", ...dataTypes];
+  }
+}
+
+function defineCSSLengthType(compatData) {
+  const { browsers } = compatData;
+  const { length } = compatData.css.types;
+
+  const supportTable = {};
+  for (let id in browsers) {
+    supportTable[id] = { "version_added": true };
+  }
+
+  const compatTable = {
+    "support": supportTable,
+    "status": {
+      "experimental": false,
+      "standard_track": true,
+      "deprecated": false
+    }
+  };
+
+  // MDN Compat data looks not having following units of <length> type.
+  for (const unit of ["em", "px", "cm", "mm", "in", "pc", "pt"]) {
+    length[unit] = { __compat: compatTable };
   }
 }
