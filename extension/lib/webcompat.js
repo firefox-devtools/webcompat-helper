@@ -16,13 +16,6 @@ const _ISSUE_TYPE = {
   CSS_VALUE_ALIASES: "CSS_VALUE_ALIASES",
 };
 
-// The follwing data will not be necessary if this issue is fixed.
-// https://github.com/mdn/browser-compat-data/issues/4309
-const _CSS_VALUE_TYPES = {
-  "background-image": ["global_keywords", "image", "url"],
-  "padding": ["global_keywords", "length", "percentage", "calc"],
-};
-
 // MDN Compat data looks not having the data which are supporting all browser.
 // Thus, we define the units of above.
 const _WHITE_TYPE_MAP = {
@@ -296,6 +289,12 @@ class WebCompat {
     return Object.assign(summary, { property });
   }
 
+  _getCSSPropertyDataTypes(property) {
+    const database = this._webCompatData.css.properties;
+    const compatNode = this._getCompatNode(database, [property]);
+    return compatNode ? compatNode.__dataTypes : [];
+  }
+
   _getCSSValueCompatSummaries(browsers, property, value) {
     if (!this._hasTerm(this._webCompatData.css.properties, property)) {
       // Since the property is invalid, we don't have to do anymore.
@@ -347,10 +346,10 @@ class WebCompat {
       const database = this._webCompatData.css;
       let path = this._getTermPath(database, "properties", property, type);
 
-      if (!path.length && _CSS_VALUE_TYPES[property]) {
+      if (!path.length) {
         // 3rd. As there was no corresponding data in properties database,
         //      try to find issues from CSS types data.
-        for (const dataType of _CSS_VALUE_TYPES[property]) {
+        for (const dataType of this._getCSSPropertyDataTypes(property)) {
           if (dataType === type) {
             path = ["types", dataType];
             break;
@@ -421,7 +420,7 @@ class WebCompat {
   }
 
   _isCSSValueInWhiteList(property, term, type) {
-    const dataTypes = _CSS_VALUE_TYPES[property] || [];
+    const dataTypes = this._getCSSPropertyDataTypes(property);
 
     return dataTypes.find(dataType => {
       if (dataType === "length") {
