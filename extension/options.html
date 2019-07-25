@@ -4,6 +4,10 @@
   <head>
     <meta charset="utf-8">
     <style>
+    body {
+      padding-inline: 8px;
+    }
+
     h1 {
       font-size: 17px;
       font-weight: 600;
@@ -13,16 +17,23 @@
       margin: 0;
       padding: 0;
     }
-    li {
-      display: grid;
-      grid-template-columns: auto 100px 1fr 16px;
-      column-gap: 4px;
-    }
     </style>
     <script type="module" src="options.js"></script>
   </head>
   <body>
+    <h1>Preferences</h1>
+    <section id="preferences">
+      <ul>
+        <li>
+          <input id="css-value-enabled" type="checkbox">
+          <label for="css-value-enabled">
+            Show warnings for CSS values (Experimental)
+          </label>
+        </li>
+      </ul>
+    </section>
+
     <h1>Target browsers</h1>
-    <main></main>
+    <section id="browsers"></section>
   </body>
 </html>

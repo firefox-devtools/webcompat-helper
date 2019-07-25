@@ -198,12 +198,29 @@ function _renderTerm(text, classes = []) {
   return termEl;
 }
 
-async function _updateAll() {
+async function _updateCSSValueEnabled() {
+  const isCSSValueEnabled = await _userSettings.isCSSValueEnabled();
+  _webcompat.setCSSValueEnabled(isCSSValueEnabled);
+}
+
+async function _updateTargetBrowsers() {
   _targetBrowsers = await _userSettings.getTargetBrowsers();
-  await _update();
 }
 
 browser.experiments.inspectedNode.onChange.addListener(_update);
-_userSettings.addChangeListener(_updateAll);
 
-_updateAll();
+_userSettings.addChangeListener(UserSettings.SETTING_TYPE.TARGET_BROWSER, async () => {
+  await _updateTargetBrowsers();
+  await _update();
+});
+
+_userSettings.addChangeListener(UserSettings.SETTING_TYPE.CSS_VALUE_ENABLED, async () => {
+  await _updateCSSValueEnabled();
+  await _update();
+});
+
+(async function initialize() {
+  await _updateCSSValueEnabled();
+  await _updateTargetBrowsers();
+  await _update();
+})();

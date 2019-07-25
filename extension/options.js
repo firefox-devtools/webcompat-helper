@@ -6,7 +6,7 @@ import webCompatData from "./webcompat-data.js";
 const _userSettings = new UserSettings(webCompatData);
 
 function _buildUI() {
-  const mainEl = document.querySelector("main");
+  const browsersEl = document.getElementById("browsers");
 
   let currentID = null;
   let currentUlEl = null;
@@ -17,7 +17,7 @@ function _buildUI() {
       legendEl.textContent = name;
       currentUlEl = document.createElement("ul");
       fieldsetEl.append(legendEl, currentUlEl);
-      mainEl.append(fieldsetEl);
+      browsersEl.append(fieldsetEl);
       currentID = id;
     }
 
@@ -36,8 +36,19 @@ function _buildUI() {
     liEl.append(inputEl, labelEl);
     currentUlEl.append(liEl);
 
-    inputEl.addEventListener("click", _onInputClick);
+    inputEl.addEventListener("click", _onBrowserClick);
   }
+
+  document.getElementById("css-value-enabled")
+          .addEventListener("click", _onCSSValueEnabledClick);
+}
+
+async function _onBrowserClick() {
+  await _saveTargetBrowsers();
+}
+
+async function _onCSSValueEnabledClick() {
+  await _saveCSSValueEnabled();
 }
 
 async function _loadOptionsData() {
@@ -46,13 +57,17 @@ async function _loadOptionsData() {
     const inputEl = document.getElementById(elementID);
     inputEl.checked = true;
   }
+
+  const isCSSValueEnabled = await _userSettings.isCSSValueEnabled();
+  document.getElementById("css-value-enabled").checked = isCSSValueEnabled;
 }
 
-async function _onInputClick() {
-  await _saveOptionsData();
+async function _saveCSSValueEnabled() {
+  const isCSSValueEnabled = document.getElementById("css-value-enabled").checked;
+  await _userSettings.setCSSValueEnabled(isCSSValueEnabled);
 }
 
-async function _saveOptionsData() {
+async function _saveTargetBrowsers() {
   const browsers = [...document.querySelectorAll("input:checked")].map(({ dataset }) => {
     return {
       id: dataset.id,
@@ -61,7 +76,7 @@ async function _saveOptionsData() {
       status: dataset.status,
     }
   });
-  await _userSettings.saveTargetBrowsers(browsers);
+  await _userSettings.setTargetBrowsers(browsers);
 }
 
 function _toElementID(name, version) {
