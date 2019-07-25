@@ -31,11 +31,18 @@ this.inspectedNode = class extends ExtensionAPI {
 
     const _unobserve = async (clientId) => {
       const { inspector, onNodeChange } = _clients.get(clientId);
-      const changesFront = await inspector.target.getFront("changes");
-      changesFront.off("clear-changes", onNodeChange);
-      changesFront.off("remove-change", onNodeChange);
-      changesFront.off("add-change", onNodeChange);
-      inspector.selection.on("new-node-front", onNodeChange);
+      // During the DevTools close, the references to the target and fronts may become
+      // invalidated before dependencies have a chance to unregister. This guard is here
+      // to prevent throwing errors as a result of trying to work on an unavailable front.
+      try {
+        const changesFront = await inspector.target.getFront("changes");
+        changesFront.off("clear-changes", onNodeChange);
+        changesFront.off("remove-change", onNodeChange);
+        changesFront.off("add-change", onNodeChange);
+        inspector.selection.off("new-node-front", onNodeChange);
+      } catch (err) {
+        // silent error
+      }
 
       _clients.delete(clientId);
     };
