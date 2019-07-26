@@ -9,9 +9,21 @@ const _userSettings = new UserSettings(_webCompatData);
 let _targetBrowsers = null;
 
 async function _update() {
-  const issues = [];
-  const declarationBlocks = await browser.experiments.inspectedNode.getStyle();
+  const nodeName = await browser.experiments.inspectedNode.getNodeName();
+  if (!nodeName) {
+    // Text node and so on.
+    _render([]);
+    return;
+  }
 
+  const issues = [];
+
+  const htmlElementIssue = _webcompat.getHTMLElementIssue(nodeName, _targetBrowsers);
+  if (htmlElementIssue) {
+    issues.push(htmlElementIssue);
+  }
+
+  const declarationBlocks = await browser.experiments.inspectedNode.getStyle();
   for (const { declarations } of declarationBlocks) {
     issues.push(
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
@@ -79,6 +91,12 @@ function _renderSubject(issue) {
         _renderTerm(`${issue.property}: `),
         _renderTerms(issue.aliases, ["value", "alias"]),
         _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
+      );
+      break;
+    }
+    case WebCompat.ISSUE_TYPE.HTML_ELEMENT: {
+      subjectEl.append(
+        _renderTerm(issue.element.toLowerCase(), ["element"])
       );
       break;
     }

@@ -14,16 +14,15 @@ browser.runtime.onConnect.addListener(port => {
     port.postMessage({ method: "onChange" });
   }
 
-  const onMessage = async (action) => {
-    switch (action.method) {
+  const onMessage = async ({ method, timestamp }) => {
+    switch (method) {
       case "onChange": {
         browser.experiments.inspectedNode.onChange.addListener(onChange, clientId);
         break;
       }
-      case "getStyle": {
-        const style = await browser.experiments.inspectedNode.getStyle(clientId);
-        port.postMessage(
-          { method: action.method, timestamp: action.timestamp, result: style });
+      default: {
+        const result = await browser.experiments.inspectedNode[method](clientId);
+        port.postMessage({ method, timestamp, result });
         break;
       }
     }

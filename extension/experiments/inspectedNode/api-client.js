@@ -40,9 +40,16 @@
       }
     },
 
+    async getNodeName() {
+      return this._invoke("getNodeName");
+    },
+
     async getStyle() {
+      return this._invoke("getStyle");
+    },
+
+    async _invoke(method) {
       return new Promise(resolve => {
-        const method = "getStyle"
         const timestamp = Date.now();
 
         const listener = response => {
