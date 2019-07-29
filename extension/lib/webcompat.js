@@ -14,6 +14,7 @@ const _ISSUE_TYPE = {
   CSS_PROPERTY_ALIASES: "CSS_PROPERTY_ALIASES",
   CSS_VALUE: "CSS_VALUE",
   CSS_VALUE_ALIASES: "CSS_VALUE_ALIASES",
+  HTML_ELEMENT: "HTML_ELEMENT",
 };
 
 // The follwing data will not be necessary if this issue is fixed.
@@ -81,6 +82,25 @@ class WebCompat {
     return this._toCSSIssues(normalSummaries.concat(aliasSummaries));
   }
 
+  /**
+   * @param {String} elementName -
+   *                e.g. div, main, aside
+   * @param {Array} browsers -
+   *                e.g. [{ id: "firefox", name: "Firefox", version: "68" }, ...]
+   * @return {Object} if no issue found, return null.
+   */
+  getHTMLElementIssue(elementName, browsers) {
+    const database = this._webCompatData.html.elements;
+    const summary = this._getCompatSummary(browsers, database, elementName);
+
+    if (!this._hasIssue(summary)) {
+      return null;
+    }
+
+    summary.element = elementName;
+    return this._toIssue(summary, _ISSUE_TYPE.HTML_ELEMENT);
+  }
+
   _asFloatVersion(version = false) {
     if (version === true) {
       return 0;
@@ -93,8 +113,6 @@ class WebCompat {
     const aliasSummariesMap = new Map();
     const normalSummaries = summaries.filter(s => {
       const { database, invalid, property, terms, unsupportedBrowsers, value } = s;
-      delete s.database;
-      delete s.terms;
 
       if (invalid) {
         return true;
@@ -416,6 +434,10 @@ class WebCompat {
     return compatTable ? compatTable.status : {};
   }
 
+  _hasIssue({ unsupportedBrowsers, deprecated, experimental, invalid }) {
+    return unsupportedBrowsers.length || deprecated || experimental || invalid;
+  }
+
   _hasTerm(compatNode, ...terms) {
     return !!this._getCompatTable(compatNode, terms);
   }
@@ -436,30 +458,33 @@ class WebCompat {
     });
   }
 
+  _toIssue(summary, type) {
+    return Object.assign({}, summary, { type, database: undefined, terms: undefined });
+  }
+
   _toCSSIssues(summaries) {
-    return summaries
-    // Filter only what the summary has problem.
-      .filter(s => s.unsupportedBrowsers.length ||
-                 s.deprecated ||
-                 s.experimental ||
-                 s.invalid)
-    // Finally, classify the issue type.
-      .map(issue => {
-        let type = null;
+    const issues = [];
 
-        if (issue.aliases) {
-          type = typeof issue.value !== "undefined"
-                   ? _ISSUE_TYPE.CSS_VALUE_ALIASES
-                   : _ISSUE_TYPE.CSS_PROPERTY_ALIASES;
-        } else {
-          type = typeof issue.value !== "undefined"
-                   ? _ISSUE_TYPE.CSS_VALUE
-                   : _ISSUE_TYPE.CSS_PROPERTY;
-        }
+    for (const summary of summaries) {
+      if (!this._hasIssue(summary)) {
+        continue;
+      }
 
-        issue.type = type;
-        return issue;
-      });
+      let type = null;
+      if (summary.aliases) {
+        type = typeof summary.value !== "undefined"
+                 ? _ISSUE_TYPE.CSS_VALUE_ALIASES
+                 : _ISSUE_TYPE.CSS_PROPERTY_ALIASES;
+      } else {
+        type = typeof summary.value !== "undefined"
+                 ? _ISSUE_TYPE.CSS_VALUE
+                 : _ISSUE_TYPE.CSS_PROPERTY;
+      }
+
+      issues.push(this._toIssue(summary, type));
+    }
+
+    return issues;
   }
 }
 
