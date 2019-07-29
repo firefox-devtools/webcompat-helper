@@ -3,7 +3,7 @@
     "namespace": "experiments.inspectedNode",
     "functions": [
       {
-        "name": "getNodeName",
+        "name": "getNode",
         "type": "function",
         "parameters": [
           {

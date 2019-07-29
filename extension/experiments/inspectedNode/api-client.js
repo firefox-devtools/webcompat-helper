@@ -40,8 +40,8 @@
       }
     },
 
-    async getNodeName() {
-      return this._invoke("getNodeName");
+    async getNode() {
+      return this._invoke("getNode");
     },
 
     async getStyle() {

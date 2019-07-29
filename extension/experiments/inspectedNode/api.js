@@ -67,12 +67,16 @@ this.inspectedNode = class extends ExtensionAPI {
       }).filter(rule => !!rule);
     };
 
-    const _getNodeName = async (clientId) => {
+    const _getNode = async (clientId) => {
       await _setupClientIfNeeded(clientId);
 
       const { inspector } = _clients.get(clientId);
-      return inspector.selection.isConnected()
-               ? inspector.selection.nodeFront.tagName : null;
+      if (!inspector.selection.isConnected()) {
+        return {};
+      }
+
+      const { nodeName, nodeType, customElementLocation } = inspector.selection.nodeFront;
+      return { nodeName, nodeType, isCustomElement: !!customElementLocation };
     };
 
     const _setupClientIfNeeded = async (clientId) => {
@@ -91,8 +95,8 @@ this.inspectedNode = class extends ExtensionAPI {
     return {
       experiments: {
         inspectedNode: {
-          async getNodeName(clientId) {
-            return _getNodeName(clientId);
+          async getNode(clientId) {
+            return _getNode(clientId);
           },
 
           async getStyle(clientId) {

@@ -9,9 +9,9 @@ const _userSettings = new UserSettings(_webCompatData);
 let _targetBrowsers = null;
 
 async function _update() {
-  const nodeName = await browser.experiments.inspectedNode.getNodeName();
-  if (!nodeName) {
-    // Text node and so on.
+  const { nodeName, nodeType, isCustomElement } =
+    await browser.experiments.inspectedNode.getNode();
+  if (nodeType !== Node.ELEMENT_NODE || isCustomElement) {
     _render([]);
     return;
   }
