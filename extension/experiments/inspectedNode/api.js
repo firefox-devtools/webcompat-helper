@@ -97,6 +97,11 @@ this.inspectedNode = class extends ExtensionAPI {
       return styles;
     };
 
+    const _getNodeInfo = node => {
+      const { nodeName, nodeType, customElementLocation } = node;
+      return { nodeName, nodeType, isCustomElement: !!customElementLocation };
+    };
+
     const _getNode = async (clientId) => {
       await _setupClientIfNeeded(clientId);
 
@@ -105,8 +110,19 @@ this.inspectedNode = class extends ExtensionAPI {
         return {};
       }
 
-      const { nodeName, nodeType, customElementLocation } = inspector.selection.nodeFront;
-      return { nodeName, nodeType, isCustomElement: !!customElementLocation };
+      return _getNodeInfo(inspector.selection.nodeFront);
+    };
+
+    const _getNodesInSubtree = async (clientId) => {
+      await _setupClientIfNeeded(clientId);
+
+      const { inspector } = _clients.get(clientId);
+      if (!inspector.selection.isConnected()) {
+        return {};
+      }
+
+      const subnodes = await _getSubtreeNodes(inspector.selection.nodeFront);
+      return subnodes.map(n => _getNodeInfo(n));
     };
 
     const _setupClientIfNeeded = async (clientId) => {
@@ -127,6 +143,10 @@ this.inspectedNode = class extends ExtensionAPI {
         inspectedNode: {
           async getNode(clientId) {
             return _getNode(clientId);
+          },
+
+          async getNodesInSubtree(clientId) {
+            return _getNodesInSubtree(clientId);
           },
 
           async getStyle(clientId) {
