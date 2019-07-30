@@ -48,6 +48,10 @@
       return this._invoke("getStyle");
     },
 
+    async getStylesInSubtree() {
+      return this._invoke("getStylesInSubtree");
+    },
+
     async _invoke(method) {
       return new Promise(resolve => {
         const timestamp = Date.now();

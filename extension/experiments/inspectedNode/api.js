@@ -47,6 +47,29 @@ this.inspectedNode = class extends ExtensionAPI {
       _clients.delete(clientId);
     };
 
+    const _getSubtreeNodes = async (node) => {
+      const nodes = [];
+
+      for (const child of await node.treeChildren()) {
+        nodes.push(child);
+        nodes.push(...(await _getSubtreeNodes(child)));
+      }
+
+      return nodes;
+    }
+
+    const _getAppliedStyle = async (inspector, node, option) => {
+      const styles =
+        await inspector.pageStyle.getApplied(node, option);
+
+      return styles.map(({ rule }) => {
+        const { actorID: ruleId } = rule;
+        let { declarations } = rule;
+        declarations = declarations.filter(d => !d.commentOffsets);
+        return declarations.length ? { ruleId, declarations } : null;
+      }).filter(rule => !!rule);
+    };
+
     const _getStyle = async (clientId) => {
       await _setupClientIfNeeded(clientId);
 
@@ -56,15 +79,22 @@ this.inspectedNode = class extends ExtensionAPI {
       }
 
       const node = inspector.selection.nodeFront;
-      const styles =
-        await inspector.pageStyle.getApplied(node, { skipPseudo: true });
+      return _getAppliedStyle(inspector, node, { skipPseudo: true });
+    };
 
-      return styles.map(({ rule }) => {
-        const { actorID: ruleId } = rule;
-        let { declarations } = rule;
-        declarations = declarations.filter(d => !d.commentOffsets);
-        return declarations.length ? { ruleId, declarations } : null;
-      }).filter(rule => !!rule);
+    const _getStylesInSubtree = async (clientId) => {
+      await _setupClientIfNeeded(clientId);
+
+      const { inspector } = _clients.get(clientId);
+      if (!inspector.selection.isConnected()) {
+        return [];
+      }
+
+      const styles = [];
+      for (const subnode of await _getSubtreeNodes(inspector.selection.nodeFront)) {
+        styles.push(...(await _getAppliedStyle(inspector, subnode, {})));
+      }
+      return styles;
     };
 
     const _getNode = async (clientId) => {
@@ -101,6 +131,10 @@ this.inspectedNode = class extends ExtensionAPI {
 
           async getStyle(clientId) {
             return _getStyle(clientId);
+          },
+
+          async getStylesInSubtree(clientId) {
+            return _getStylesInSubtree(clientId);
           },
 
           onChange: new ExtensionCommon.EventManager({

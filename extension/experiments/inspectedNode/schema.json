@@ -23,6 +23,17 @@
           }
         ],
         "async": true
+      },
+      {
+        "name": "getStylesInSubtree",
+        "type": "function",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "clientId"
+          }
+        ],
+        "async": true
       }
     ],
     "events": [
