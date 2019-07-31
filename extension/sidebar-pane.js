@@ -169,11 +169,11 @@ function _renderBrowsersElement(browsers) {
   const browsersEl = document.createElement("span");
 
   const map = {};
-  for (const { id, name, version } of browsers) {
+  for (const { id, name, status } of browsers) {
     if (!map[id]) {
       map[id] = { name, versions: [] };
     }
-    map[id].versions.push(version);
+    map[id].versions.push(status);
   }
 
   for (let id in map) {
