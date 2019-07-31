@@ -32,7 +32,7 @@ function _buildUI() {
     inputEl.dataset.version = version;
     inputEl.dataset.status = status;
     labelEl.setAttribute("for", elementID);
-    labelEl.textContent = `${ version } (${ status })`;
+    labelEl.textContent = `${ status } (${ version })`;
     liEl.append(inputEl, labelEl);
     currentUlEl.append(liEl);
 
