@@ -93,6 +93,13 @@ test("a deprecated html attribute", () => {
   assertIssue(issues[0], expectedIssue);
 });
 
+test("a data-* attribute", () => {
+  const elementName = "body";
+  const attributes = [{ name: "data-test", value: "test value" }];
+  const issues = webcompat.getHTMLElementIssues(elementName, attributes, [FIREFOX_69]);
+  expect(issues.length).toBe(0);
+});
+
 test("an invalid html element", () => {
   const elementName = "div";
   const attributeName = "invalid";

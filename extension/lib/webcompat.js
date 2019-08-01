@@ -105,10 +105,16 @@ class WebCompat {
     }
 
     for (const { name: attributeName, value: attributeValue } of attributes) {
-      const attributeSummary =
-        this._hasTerm(databaseElements, elementName, attributeName)
-          ? this._getCompatSummary(browsers, databaseElements, elementName, attributeName)
-          : this._getCompatSummary(browsers, databaseGlobalAttributes, attributeName)
+      let attributeSummary = null;
+      if (this._hasTerm(databaseElements, elementName, attributeName)) {
+        attributeSummary =
+          this._getCompatSummary(browsers, databaseElements, elementName, attributeName);
+      } else {
+        const keyword =
+          attributeName.startsWith("data-") ? "data_attributes" : attributeName;
+        attributeSummary =
+          this._getCompatSummary(browsers, databaseGlobalAttributes, keyword);
+      }
 
       if (this._hasIssue(attributeSummary)) {
         attributeSummary.element = elementName;
