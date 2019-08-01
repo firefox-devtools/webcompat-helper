@@ -98,8 +98,8 @@ this.inspectedNode = class extends ExtensionAPI {
     };
 
     const _getNodeInfo = node => {
-      const { nodeName, nodeType, customElementLocation } = node;
-      return { nodeName, nodeType, isCustomElement: !!customElementLocation };
+      const { attributes, nodeName, nodeType, customElementLocation } = node;
+      return { attributes, nodeName, nodeType, isCustomElement: !!customElementLocation };
     };
 
     const _getNode = async (clientId) => {

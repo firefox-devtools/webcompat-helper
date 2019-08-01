@@ -24,11 +24,9 @@ async function _updateSelectedNode(selectedNode) {
 
   const issues = [];
 
-  const htmlElementIssue =
-    _webcompat.getHTMLElementIssue(selectedNode.nodeName, _targetBrowsers);
-  if (htmlElementIssue) {
-    issues.push(htmlElementIssue);
-  }
+  const { attributes, nodeName } = selectedNode;
+  issues.push(
+    ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
 
   const declarationBlocks = await browser.experiments.inspectedNode.getStyle();
   for (const { declarations } of declarationBlocks) {
@@ -54,11 +52,9 @@ async function _updateSubtree(selectedNode) {
       continue
     }
 
-    const htmlElementIssue =
-      _webcompat.getHTMLElementIssue(node.nodeName, _targetBrowsers);
-    if (htmlElementIssue) {
-      issues.push(htmlElementIssue);
-    }
+    const { attributes, nodeName } = node;
+    issues.push(
+      ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
   }
 
   const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
