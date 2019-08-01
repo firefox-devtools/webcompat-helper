@@ -67,6 +67,11 @@ class WebCompat {
   getCSSDeclarationBlockIssues(declarations, browsers) {
     let summaries = [];
     for (const { name: property, value } of declarations) {
+      // Ignore CSS custom properties as any name is valid.
+      if (property.startsWith("--")) {
+        continue;
+      }
+
       summaries.push(this._getCSSPropertyCompatSummary(browsers, property));
 
       if (this._css_value_enabled) {
