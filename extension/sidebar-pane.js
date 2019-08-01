@@ -9,16 +9,23 @@ const _userSettings = new UserSettings(_webCompatData);
 let _targetBrowsers = null;
 
 async function _update() {
-  const { nodeName, nodeType, isCustomElement } =
-    await browser.experiments.inspectedNode.getNode();
-  if (nodeType !== Node.ELEMENT_NODE || isCustomElement) {
-    _render([]);
+  const selectedNode = await browser.experiments.inspectedNode.getNode();
+  _updateSelectedNode(selectedNode);
+  _updateSubtree(selectedNode);
+}
+
+async function _updateSelectedNode(selectedNode) {
+  const ulEl = document.querySelector("#selected ul");
+
+  if (!_isValidElement(selectedNode)) {
+    _render([], ulEl);
     return;
   }
 
   const issues = [];
 
-  const htmlElementIssue = _webcompat.getHTMLElementIssue(nodeName, _targetBrowsers);
+  const htmlElementIssue =
+    _webcompat.getHTMLElementIssue(selectedNode.nodeName, _targetBrowsers);
   if (htmlElementIssue) {
     issues.push(htmlElementIssue);
   }
@@ -29,14 +36,47 @@ async function _update() {
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
   }
 
-  _render(issues);
+  _render(issues, ulEl);
 }
 
-function _render(issues) {
-  const sectionEl = document.querySelector("section");
-  sectionEl.innerHTML = "";
+async function _updateSubtree(selectedNode) {
+  const ulEl = document.querySelector("#subtree ul");
 
-  const ulEl = document.createElement("ul");
+  if (!_isValidElement(selectedNode)) {
+    _render([], ulEl);
+    return;
+  }
+
+  const issues = [];
+
+  for (const node of await browser.experiments.inspectedNode.getNodesInSubtree()) {
+    if (!_isValidElement(node)) {
+      continue
+    }
+
+    const htmlElementIssue =
+      _webcompat.getHTMLElementIssue(node.nodeName, _targetBrowsers);
+    if (htmlElementIssue) {
+      issues.push(htmlElementIssue);
+    }
+  }
+
+  const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
+  for (const { declarations } of declarationBlocks) {
+    issues.push(
+      ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
+  }
+
+  _render(issues, ulEl);
+}
+
+function _isValidElement({ nodeType, isCustomElement }) {
+  return nodeType === Node.ELEMENT_NODE && !isCustomElement;
+}
+
+function _render(issues, ulEl) {
+  ulEl.innerHTML = "";
+
   if (!issues.length) {
     const liEl = document.createElement("li");
     liEl.textContent = "No issues";
@@ -46,7 +86,6 @@ function _render(issues) {
       ulEl.appendChild(_renderIssue(issue));
     }
   }
-  sectionEl.appendChild(ulEl);
 }
 
 function _renderIssue(issue) {

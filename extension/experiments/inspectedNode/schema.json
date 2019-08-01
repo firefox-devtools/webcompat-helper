@@ -14,7 +14,29 @@
         "async": true
       },
       {
+        "name": "getNodesInSubtree",
+        "type": "function",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "clientId"
+          }
+        ],
+        "async": true
+      },
+      {
         "name": "getStyle",
+        "type": "function",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "clientId"
+          }
+        ],
+        "async": true
+      },
+      {
+        "name": "getStylesInSubtree",
         "type": "function",
         "parameters": [
           {

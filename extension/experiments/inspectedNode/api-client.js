@@ -44,8 +44,16 @@
       return this._invoke("getNode");
     },
 
+    async getNodesInSubtree() {
+      return this._invoke("getNodesInSubtree");
+    },
+
     async getStyle() {
       return this._invoke("getStyle");
+    },
+
+    async getStylesInSubtree() {
+      return this._invoke("getStylesInSubtree");
     },
 
     async _invoke(method) {
