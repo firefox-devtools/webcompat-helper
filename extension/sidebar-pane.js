@@ -103,13 +103,13 @@ function _renderSubject(issue) {
   switch (type) {
     case WebCompat.ISSUE_TYPE.CSS_PROPERTY: {
       subjectEl.append(
-        _renderTerm(issue.property, ["property"])
+        _renderTerm(issue.property, ["property", "issue"])
       );
       break;
     }
     case WebCompat.ISSUE_TYPE.CSS_PROPERTY_ALIASES: {
       subjectEl.append(
-        _renderTerms(issue.aliases, ["property", "alias"]),
+        _renderTerms(issue.aliases, ["property", "alias", "issue"]),
         _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
       );
       break;
@@ -117,21 +117,30 @@ function _renderSubject(issue) {
     case WebCompat.ISSUE_TYPE.CSS_VALUE: {
       subjectEl.append(
         _renderTerm(`${issue.property}: `),
-        _renderTerm(issue.value, ["value"])
+        _renderTerm(issue.value, ["value", "issue"])
       );
       break;
     }
     case WebCompat.ISSUE_TYPE.CSS_VALUE_ALIASES: {
       subjectEl.append(
         _renderTerm(`${issue.property}: `),
-        _renderTerms(issue.aliases, ["value", "alias"]),
+        _renderTerms(issue.aliases, ["value", "alias", "issue"]),
         _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
+      );
+      break;
+    }
+    case WebCompat.ISSUE_TYPE.HTML_ATTRIBUTE: {
+      subjectEl.append(
+        _renderTerm(issue.element.toLowerCase(), ["element"]),
+        _renderTerm(" "),
+        _renderTerm(issue.attribute.toLowerCase(), ["attribute", "issue"]),
+        _renderTerm(" attribute"),
       );
       break;
     }
     case WebCompat.ISSUE_TYPE.HTML_ELEMENT: {
       subjectEl.append(
-        _renderTerm(issue.element.toLowerCase(), ["element"])
+        _renderTerm(issue.element.toLowerCase(), ["element", "issue"])
       );
       break;
     }
