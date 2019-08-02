@@ -90,7 +90,7 @@ class WebCompat {
    *                e.g. [{ name: "dir", value: "ltr" }, ...]
    * @param {Array} browsers -
    *                e.g. [{ id: "firefox", name: "Firefox", version: "68" }, ...]
-   * @return {Array} issues
+   * @return {Array} if there are no issues found, then the array is empty.
    */
   getHTMLElementIssues(elementName, attributes, browsers) {
     const databaseElements = this._webCompatData.html.elements;
