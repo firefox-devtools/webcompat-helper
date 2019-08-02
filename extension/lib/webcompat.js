@@ -116,7 +116,8 @@ class WebCompat {
           this._getCompatSummary(browsers, databaseGlobalAttributes, keyword);
       }
 
-      if (this._hasIssue(attributeSummary)) {
+      // Don't apply the invalid attribute which was not in the database as issue.
+      if (this._hasIssue(attributeSummary) && !attributeSummary.invalid) {
         attributeSummary.element = elementName;
         attributeSummary.attribute = attributeName;
         attributeSummary.value = attributeValue;

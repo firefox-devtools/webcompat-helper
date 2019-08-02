@@ -106,17 +106,7 @@ test("an invalid html element", () => {
   const attributeValue = "invalid value";
   const attributes = [{ name: attributeName, value: attributeValue }];
   const issues = webcompat.getHTMLElementIssues(elementName, attributes, [FIREFOX_69]);
-  expect(issues.length).toBe(1);
-
-  const expectedIssue = {
-    type: WebCompat.ISSUE_TYPE.HTML_ATTRIBUTE,
-    element: elementName,
-    attribute: attributeName,
-    value: attributeValue,
-    invalid: true,
-    unsupportedBrowsers: [],
-  };
-  assertIssue(issues[0], expectedIssue);
+  expect(issues.length).toBe(0);
 });
 
 function assertIssue(actualIssue, expectedIssue) {
