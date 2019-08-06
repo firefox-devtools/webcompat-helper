@@ -20,34 +20,11 @@ const FIREFOX_4 = {
   version: "4",
 };
 
-test("<length> type", () => {
-  const supportedUnits = [
-    "cap", "ch", "em", "ex", "ic", "lh", "rem", "rlh", "vh", "vw", "vi", "vb",
-    "vmin", "vmax", "px", "cm", "mm", "Q", "in", "pc", "pt", "mozmm",
-  ];
-
+test("a supported css value", () => {
   const declarations = [
     {
-      // <length> type allows 0.
-      name: "padding",
-      value: 0,
-    }
-  ];
-
-  for (const unit of supportedUnits) {
-    declarations.push({ name: "padding", value: `1${ unit }` });
-  }
-
-  // Even if there are several issues such as experimental value, they should be valid.
-  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.every(i => !i.invalid)).toBe(true);
-});
-
-test("<percentage> type", () => {
-  const declarations = [
-    {
-      name: "padding",
-      value: "1%",
+      name: "display",
+      value: "inline-table",
     }
   ];
 
@@ -55,51 +32,89 @@ test("<percentage> type", () => {
   expect(issues.length).toBe(0);
 });
 
-test("<calc> type", () => {
+test("a non supported css value", () => {
   const declarations = [
     {
-      name: "padding",
-      value: "calc(1px + 1%)",
+      name: "display",
+      value: "inline-table",
+    }
+  ];
+
+  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_1]);
+  expect(issues.length).toBe(1);
+
+  const expectedIssue = {
+    type: WebCompat.ISSUE_TYPE.CSS_VALUE,
+    property: "display",
+    value: "inline-table",
+    unsupportedBrowsers: [FIREFOX_1],
+  };
+  assertIssue(issues[0], expectedIssue);
+});
+
+test("an experimental css value", () => {
+  const declarations = [
+    {
+      name: "display",
+      value: "flow-root",
     }
   ];
 
   const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(0);
+  expect(issues.length).toBe(1);
+
+  const expectedIssue = {
+    type: WebCompat.ISSUE_TYPE.CSS_VALUE,
+    experimental: true,
+    property: "display",
+    value: "flow-root",
+    unsupportedBrowsers: [],
+  };
+  assertIssue(issues[0], expectedIssue);
 });
 
-test("<url> type", () => {
+test("an deprecated css value", () => {
   const declarations = [
     {
-      name: "background-image",
-      value: "url(sample.png)",
+      name: "display",
+      value: "subgrid",
     }
   ];
 
   const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(0);
+  expect(issues.length).toBe(1);
+
+  const expectedIssue = {
+    type: WebCompat.ISSUE_TYPE.CSS_VALUE,
+    deprecated: true,
+    property: "display",
+    value: "subgrid",
+    unsupportedBrowsers: [FIREFOX_69],
+  };
+  assertIssue(issues[0], expectedIssue);
 });
 
-test("global keywords type", () => {
+test("mapped css types", () => {
   const declarations = [
     {
       name: "padding",
-      value: "initial",
-    },
-    {
-      name: "padding",
-      value: "inherit",
-    },
-    {
-      name: "padding",
-      value: "unset",
+      value: "1rem",
     }
   ];
 
-  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(0);
+  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_1]);
+  expect(issues.length).toBe(1);
+
+  const expectedIssue = {
+    type: WebCompat.ISSUE_TYPE.CSS_VALUE,
+    property: "padding",
+    value: "1rem",
+    unsupportedBrowsers: [FIREFOX_1],
+  };
+  assertIssue(issues[0], expectedIssue);
 });
 
-test("unknown value", () => {
+test("invalid value", () => {
   const declarations = [
     {
       name: "padding",
@@ -108,71 +123,33 @@ test("unknown value", () => {
   ];
 
   const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(1);
-
-  const expectedIssue = {
-    type: WebCompat.ISSUE_TYPE.CSS_VALUE,
-    invalid: true,
-    property: "padding",
-    value: "invalid-value",
-    unsupportedBrowsers: [],
-  };
-  assertIssue(issues[0], expectedIssue);
+  expect(issues.length).toBe(0);
 });
 
-test("unacceptable value", () => {
+test("mixed type in shorthand property", () => {
   const declarations = [
     {
       name: "padding",
-      value: 50,
+      value: "solid 1rem 1mozmm 1px",
     }
   ];
 
-  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(1);
-
-  const expectedIssue = {
-    type: WebCompat.ISSUE_TYPE.CSS_VALUE,
-    invalid: true,
-    property: "padding",
-    value: 50,
-    unsupportedBrowsers: [],
-  };
-  assertIssue(issues[0], expectedIssue);
-});
-
-test("valid and invalid mixed value in shorthand property", () => {
-  const declarations = [
-    {
-      name: "padding",
-      value: "solid 10 5deg 1px",
-    }
-  ];
-
-  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(3);
+  const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_1]);
+  expect(issues.length).toBe(2);
 
   const expectedIssues = [
     {
       type: WebCompat.ISSUE_TYPE.CSS_VALUE,
-      invalid: true,
       property: "padding",
-      value: "solid",
-      unsupportedBrowsers: [],
+      value: "1rem",
+      unsupportedBrowsers: [FIREFOX_1],
     },
     {
       type: WebCompat.ISSUE_TYPE.CSS_VALUE,
-      invalid: true,
+      experimental: true,
       property: "padding",
-      value: 10,
-      unsupportedBrowsers: [],
-    },
-    {
-      type: WebCompat.ISSUE_TYPE.CSS_VALUE,
-      invalid: true,
-      property: "padding",
-      value: "5deg",
-      unsupportedBrowsers: [],
+      value: "1mozmm",
+      unsupportedBrowsers: [FIREFOX_1],
     },
   ];
 
@@ -231,7 +208,6 @@ function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.property).toBe(expectedIssue.property);
   expect(actualIssue.value).toBe(expectedIssue.value);
   expect(actualIssue.issueTerm).toBe(expectedIssue.issueTerm);
-  expect(!!actualIssue.invalid).toBe(!!expectedIssue.invalid);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);
   expect(!!actualIssue.unsupportedBrowsers).toBe(!!expectedIssue.unsupportedBrowsers);

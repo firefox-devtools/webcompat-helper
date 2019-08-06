@@ -64,21 +64,12 @@ test("a deprecated html element", () => {
 test("an invalid html element", () => {
   const elementName = "invalid";
   const issues = webcompat.getHTMLElementIssues(elementName, [], [FIREFOX_69]);
-  expect(issues.length).toBe(1);
-
-  const expectedIssue = {
-    type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
-    element: elementName,
-    invalid: true,
-    unsupportedBrowsers: [],
-  };
-  assertIssue(issues[0], expectedIssue);
+  expect(issues.length).toBe(0);
 });
 
 function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.type).toBe(expectedIssue.type);
   expect(actualIssue.element).toBe(expectedIssue.element);
-  expect(!!actualIssue.invalid).toBe(!!expectedIssue.invalid);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);
   expect(!!actualIssue.unsupportedBrowsers).toBe(!!expectedIssue.unsupportedBrowsers);

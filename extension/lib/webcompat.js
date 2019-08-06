@@ -126,9 +126,7 @@ class WebCompat {
           this._getCompatSummary(browsers, globalAttributesDB, keyword);
       }
 
-      // Don't apply the invalid attribute which was not in the database as issue.
-      // Because frameworks like angular make heavy use of custom attributes.
-      if (this._hasIssue(attributeSummary) && !attributeSummary.invalid) {
+      if (this._hasIssue(attributeSummary)) {
         attributeSummary.element = elementName;
         attributeSummary.attribute = attributeName;
         attributeSummary.value = attributeValue;
@@ -477,7 +475,8 @@ class WebCompat {
   }
 
   _hasIssue({ unsupportedBrowsers, deprecated, experimental, invalid }) {
-    return unsupportedBrowsers.length || deprecated || experimental || invalid;
+    // Don't apply as issue the invalid term which was not in the database.
+    return !invalid && (unsupportedBrowsers.length || deprecated || experimental);
   }
 
   _hasTerm(compatNode, ...terms) {

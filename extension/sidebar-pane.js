@@ -91,7 +91,7 @@ function _renderIssue(issue) {
   liEl.appendChild(subjectEl);
   liEl.appendChild(predicateEl);
 
-  liEl.classList.add((issue.invalid || issue.deprecated ? "warning" : "information"));
+  liEl.classList.add((issue.deprecated ? "warning" : "information"));
 
   return liEl;
 }
@@ -150,13 +150,8 @@ function _renderSubject(issue) {
 }
 
 function _renderPredicate(issue) {
-  const { type, invalid, aliases, unsupportedBrowsers } = issue;
+  const { type, aliases, unsupportedBrowsers } = issue;
   const predicateEl = document.createElement("span");
-
-  if (invalid) {
-    predicateEl.appendChild(_renderTerm(" is invalid."));
-    return predicateEl;
-  }
 
   const warningEl = _renderWarning(issue);
   if (warningEl) {
