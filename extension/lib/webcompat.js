@@ -93,12 +93,12 @@ class WebCompat {
    * @return {Array} if there are no issues found, then the array is empty.
    */
   getHTMLElementIssues(elementName, attributes, browsers) {
-    const databaseElements = this._webCompatData.html.elements;
-    const databaseGlobalAttributes = this._webCompatData.html.global_attributes;
+    const elementsDB = this._webCompatData.html.elements;
+    const globalAttributesDB = this._webCompatData.html.global_attributes;
     const issues = [];
 
     const elementSummary =
-      this._getCompatSummary(browsers, databaseElements, elementName);
+      this._getCompatSummary(browsers, elementsDB, elementName);
     if (this._hasIssue(elementSummary)) {
       elementSummary.element = elementName;
       issues.push(this._toIssue(elementSummary, _ISSUE_TYPE.HTML_ELEMENT));
@@ -106,17 +106,18 @@ class WebCompat {
 
     for (const { name: attributeName, value: attributeValue } of attributes) {
       let attributeSummary = null;
-      if (this._hasTerm(databaseElements, elementName, attributeName)) {
+      if (this._hasTerm(elementsDB, elementName, attributeName)) {
         attributeSummary =
-          this._getCompatSummary(browsers, databaseElements, elementName, attributeName);
+          this._getCompatSummary(browsers, elementsDB, elementName, attributeName);
       } else {
         const keyword =
           attributeName.startsWith("data-") ? "data_attributes" : attributeName;
         attributeSummary =
-          this._getCompatSummary(browsers, databaseGlobalAttributes, keyword);
+          this._getCompatSummary(browsers, globalAttributesDB, keyword);
       }
 
       // Don't apply the invalid attribute which was not in the database as issue.
+      // Because frameworks like angular make heavy use of custom attributes.
       if (this._hasIssue(attributeSummary) && !attributeSummary.invalid) {
         attributeSummary.element = elementName;
         attributeSummary.attribute = attributeName;
