@@ -100,7 +100,8 @@ test("a data-* attribute", () => {
   expect(issues.length).toBe(0);
 });
 
-test("an invalid html element", () => {
+test("an invalid html attributes are ignored " +
+     "because they are commonly used by frameworks", () => {
   const elementName = "div";
   const attributeName = "invalid";
   const attributeValue = "invalid value";
