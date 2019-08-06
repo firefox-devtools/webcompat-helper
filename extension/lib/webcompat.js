@@ -52,10 +52,15 @@ class WebCompat {
     this._flattenAliases(this._webCompatData.css.types);
 
     this._css_value_enabled = false;
+    this._invalid_browser_enabled = false;
   }
 
   setCSSValueEnabled(isEnabled) {
     this._css_value_enabled = isEnabled;
+  }
+
+  setInvalidBrowserEnabled(isEnabled) {
+    this._invalid_browser_enabled = isEnabled;
   }
 
   /**
@@ -328,7 +333,8 @@ class WebCompat {
 
     const unsupportedBrowsers = browsers.filter(browser => {
       const state = this._getSupportState(browser, database, ...terms);
-      return state !== _SUPPORT_STATE.SUPPORTED;
+      return this._invalid_browser_enabled ? state !== _SUPPORT_STATE.SUPPORTED
+                                           : state === _SUPPORT_STATE.UNSUPPORTED;
     });
     const { deprecated, experimental } = this._getStatus(database, ...terms);
 
@@ -450,8 +456,11 @@ class WebCompat {
 
     for (const support of supportList) {
       if((!support.prefix && !prefix) || support.prefix === prefix) {
-        const addedVersion = this._asFloatVersion(support.version_added);
-        const removedVersion = this._asFloatVersion(support.version_removed);
+        const { version_added, version_removed } = support;
+        const addedVersion =
+          this._asFloatVersion(version_added === null ? true : version_added);
+        const removedVersion =
+          this._asFloatVersion(version_removed === null ? false : version_removed);
 
         if (addedVersion <= version && version < removedVersion) {
           return _SUPPORT_STATE.SUPPORTED;
