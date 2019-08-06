@@ -16,27 +16,27 @@ const FIREFOX_1 = {
 
 test("a supported html element", () => {
   const elementName = "body";
-  const issue = webcompat.getHTMLElementIssue(elementName, [FIREFOX_69]);
-  expect(issue).toBeNull();
+  const issues = webcompat.getHTMLElementIssues(elementName, [], [FIREFOX_69]);
+  expect(issues.length).toBe(0);
 });
 
 test("a non supported html element", () => {
   const elementName = "main";
-  const issue = webcompat.getHTMLElementIssue(elementName, [FIREFOX_69, FIREFOX_1]);
-  expect(issue).not.toBeNull();
+  const issues = webcompat.getHTMLElementIssues(elementName, [], [FIREFOX_69, FIREFOX_1]);
+  expect(issues.length).toBe(1);
 
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
     element: elementName,
     unsupportedBrowsers: [FIREFOX_1],
   };
-  assertIssue(issue, expectedIssue);
+  assertIssue(issues[0], expectedIssue);
 });
 
 test("an experimental html element", () => {
   const elementName = "menu";
-  const issue = webcompat.getHTMLElementIssue(elementName, [FIREFOX_69]);
-  expect(issue).not.toBeNull();
+  const issues = webcompat.getHTMLElementIssues(elementName, [], [FIREFOX_69]);
+  expect(issues.length).toBe(1);
 
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
@@ -44,13 +44,13 @@ test("an experimental html element", () => {
     experimental: true,
     unsupportedBrowsers: [],
   };
-  assertIssue(issue, expectedIssue);
+  assertIssue(issues[0], expectedIssue);
 });
 
 test("a deprecated html element", () => {
   const elementName = "frame";
-  const issue = webcompat.getHTMLElementIssue(elementName, [FIREFOX_69]);
-  expect(issue).not.toBeNull();
+  const issues = webcompat.getHTMLElementIssues(elementName, [], [FIREFOX_69]);
+  expect(issues.length).toBe(1);
 
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
@@ -58,13 +58,13 @@ test("a deprecated html element", () => {
     deprecated: true,
     unsupportedBrowsers: [],
   };
-  assertIssue(issue, expectedIssue);
+  assertIssue(issues[0], expectedIssue);
 });
 
 test("an invalid html element", () => {
   const elementName = "invalid";
-  const issue = webcompat.getHTMLElementIssue(elementName, [FIREFOX_69]);
-  expect(issue).not.toBeNull();
+  const issues = webcompat.getHTMLElementIssues(elementName, [], [FIREFOX_69]);
+  expect(issues.length).toBe(1);
 
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
@@ -72,7 +72,7 @@ test("an invalid html element", () => {
     invalid: true,
     unsupportedBrowsers: [],
   };
-  assertIssue(issue, expectedIssue);
+  assertIssue(issues[0], expectedIssue);
 });
 
 function assertIssue(actualIssue, expectedIssue) {

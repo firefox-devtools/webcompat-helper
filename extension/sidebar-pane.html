@@ -39,13 +39,15 @@
       list-style-image: url(./images/information.svg);
     }
 
-    .property {
+    .issue {
       font-weight: 800;
+    }
+
+    .property {
       color: #0074e8;
     }
 
     .value {
-      font-weight: 800;
       color: #dd00a9;
     }
 
@@ -53,8 +55,8 @@
       content: ", ";
     }
 
-    .element {
-      font-weight: 800;
+    .element.issue {
+      color: #0074e8;
     }
 
     .element::before {
@@ -63,6 +65,10 @@
 
     .element::after {
       content: ">";
+    }
+
+    .attribute {
+      color: #dd00a9;
     }
 
     .browser {
