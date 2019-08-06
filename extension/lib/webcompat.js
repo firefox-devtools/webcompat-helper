@@ -52,10 +52,15 @@ class WebCompat {
     this._flattenAliases(this._webCompatData.css.types);
 
     this._css_value_enabled = false;
+    this._invalid_browser_enabled = false;
   }
 
   setCSSValueEnabled(isEnabled) {
     this._css_value_enabled = isEnabled;
+  }
+
+  setInvalidBrowserEnabled(isEnabled) {
+    this._invalid_browser_enabled = isEnabled;
   }
 
   /**
@@ -121,9 +126,7 @@ class WebCompat {
           this._getCompatSummary(browsers, globalAttributesDB, keyword);
       }
 
-      // Don't apply the invalid attribute which was not in the database as issue.
-      // Because frameworks like angular make heavy use of custom attributes.
-      if (this._hasIssue(attributeSummary) && !attributeSummary.invalid) {
+      if (this._hasIssue(attributeSummary)) {
         attributeSummary.element = elementName;
         attributeSummary.attribute = attributeName;
         attributeSummary.value = attributeValue;
@@ -328,7 +331,8 @@ class WebCompat {
 
     const unsupportedBrowsers = browsers.filter(browser => {
       const state = this._getSupportState(browser, database, ...terms);
-      return state !== _SUPPORT_STATE.SUPPORTED;
+      return this._invalid_browser_enabled ? state !== _SUPPORT_STATE.SUPPORTED
+                                           : state === _SUPPORT_STATE.UNSUPPORTED;
     });
     const { deprecated, experimental } = this._getStatus(database, ...terms);
 
@@ -450,8 +454,11 @@ class WebCompat {
 
     for (const support of supportList) {
       if((!support.prefix && !prefix) || support.prefix === prefix) {
-        const addedVersion = this._asFloatVersion(support.version_added);
-        const removedVersion = this._asFloatVersion(support.version_removed);
+        const { version_added, version_removed } = support;
+        const addedVersion =
+          this._asFloatVersion(version_added === null ? true : version_added);
+        const removedVersion =
+          this._asFloatVersion(version_removed === null ? false : version_removed);
 
         if (addedVersion <= version && version < removedVersion) {
           return _SUPPORT_STATE.SUPPORTED;
@@ -468,7 +475,8 @@ class WebCompat {
   }
 
   _hasIssue({ unsupportedBrowsers, deprecated, experimental, invalid }) {
-    return unsupportedBrowsers.length || deprecated || experimental || invalid;
+    // Don't apply as issue the invalid term which was not in the database.
+    return !invalid && (unsupportedBrowsers.length || deprecated || experimental);
   }
 
   _hasTerm(compatNode, ...terms) {

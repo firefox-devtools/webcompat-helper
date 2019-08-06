@@ -68,15 +68,7 @@ test("an invalid property", () => {
   ];
 
   const issues = webcompat.getCSSDeclarationBlockIssues(declarations, [FIREFOX_69]);
-  expect(issues.length).toBe(1);
-
-  const expectedIssue = {
-    type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
-    invalid: true,
-    property: "invalid-property",
-    unsupportedBrowsers: [],
-  };
-  assertIssue(issues[0], expectedIssue);
+  expect(issues.length).toBe(0);
 });
 
 test("a deprecated property", () => {
@@ -185,7 +177,6 @@ test("aliased properties which support all", () => {
 function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.type).toBe(expectedIssue.type);
   expect(actualIssue.property).toBe(expectedIssue.property);
-  expect(!!actualIssue.invalid).toBe(!!expectedIssue.invalid);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);
   expect(!!actualIssue.unsupportedBrowsers).toBe(!!expectedIssue.unsupportedBrowsers);
