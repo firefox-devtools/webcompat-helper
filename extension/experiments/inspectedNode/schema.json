@@ -58,6 +58,17 @@
             "name": "clientId"
           }
         ]
+      },
+      {
+        "name": "onProgress",
+        "type": "function",
+        "parameters": [],
+        "extraParameters": [
+          {
+            "type": "string",
+            "name": "clientId"
+          }
+        ]
       }
     ]
   }

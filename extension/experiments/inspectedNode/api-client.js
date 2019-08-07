@@ -40,6 +40,43 @@
       }
     },
 
+    onProgress: {
+      addListener(listener) {
+        if (!this._listeners) {
+          this._listeners = [listener];
+
+          const method = "onProgress";
+          const messageListener = response => {
+            if (method === response.method) {
+              for (const _listener of this._listeners) {
+                _listener();
+              }
+            }
+          };
+          port.onMessage.addListener(messageListener);
+          port.postMessage({ method });
+
+          this._messageListener = messageListener;
+        } else {
+          this._listeners.push(listener);
+        }
+      },
+      removeListener(listener) {
+        if (!this._listeners) {
+          return;
+        }
+
+        this._listeners = this._listeners.filter(l => l !== listener);
+
+        if (!this._listeners.length) {
+          port.postMessage({ method: "removeOnProgress" });
+          port.onMessage.removeListener(this._messageListener);
+          this._listeners = null;
+          this._messageListener = null;
+        }
+      }
+    },
+
     async getNode() {
       return this._invoke("getNode");
     },

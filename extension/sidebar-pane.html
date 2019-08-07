@@ -122,6 +122,26 @@
     .deprecated, .experimental {
       font-weight: 600;
     }
+
+    /* progress bar */
+    #subtree aside {
+      display: none;
+      padding-block: 12px;
+      padding-inline: 40px;
+    }
+
+    #subtree aside * {
+      display: block;
+      width: 100%;
+    }
+
+    #subtree.processing ul {
+      display: none;
+    }
+
+    #subtree.processing aside {
+      display: block;
+    }
     </style>
     <script src="experiments/inspectedNode/api-client.js"></script>
     <script type="module" src="sidebar-pane.js"></script>
@@ -134,6 +154,10 @@
     <section id="subtree">
       <header>Issues for the selected element's subtree</header>
       <ul></ul>
+      <aside>
+        <label for="subtree-processing"></label>
+        <progress id="subtree-processing" max="100" value="70"></progress>
+      </aside>
     </section>
   </body>
 </html>

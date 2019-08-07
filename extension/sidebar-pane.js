@@ -3,6 +3,7 @@
 import { UserSettings } from "./user-settings.js";
 import { WebCompat } from "./lib/webcompat.js";
 import _webCompatData from "./webcompat-data.js";
+import { ProgressBar } from "./progress-bar.js";
 
 const _webcompat = new WebCompat(_webCompatData);
 const _userSettings = new UserSettings(_webCompatData);
@@ -45,9 +46,20 @@ async function _updateSubtree(selectedNode) {
     return;
   }
 
-  const issues = [];
+  const progressBar = new ProgressBar(document.querySelector("#subtree"),
+                                      document.querySelector("#subtree aside label"),
+                                      document.querySelector("#subtree aside progress"));
+  progressBar.enable();
+  progressBar.setText("Get all of node in the subtreep");
 
-  for (const node of await browser.experiments.inspectedNode.getNodesInSubtree()) {
+  const issues = [];
+  const nodes = await browser.experiments.inspectedNode.getNodesInSubtree();
+
+  progressBar.setMax(nodes.length + 2);
+  progressBar.setValue(0);
+
+  progressBar.setText("Get compatibility for nodes");
+  for (const node of nodes) {
     if (!_isValidElement(node)) {
       continue
     }
@@ -57,13 +69,29 @@ async function _updateSubtree(selectedNode) {
       ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
   }
 
+  progressBar.incremental(1);
+
+  const progressObserver = () => {
+    progressBar.incremental(1);
+  };
+  browser.experiments.inspectedNode.onProgress.addListener(progressObserver);
+  progressBar.setText("Observe getting applied styles");
+
   const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
+
+  progressBar.setText("Get compatibility for styles");
   for (const { declarations } of declarationBlocks) {
     issues.push(
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
   }
 
+  progressBar.incremental(1);
+
+  progressBar.setText("Render all issues");
   _render(issues, ulEl);
+
+  progressBar.disable();
+  browser.experiments.inspectedNode.onProgress.removeListener(progressObserver);
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {

@@ -8,7 +8,7 @@ this.inspectedNode = class extends ExtensionAPI {
 
     const _clients = new Map();
 
-    const _observe = async (fireForEvent, clientId) => {
+    const _observeChange = async (fireForEvent, clientId) => {
       await _setupClientIfNeeded(clientId);
       const client = _clients.get(clientId);
 
@@ -29,7 +29,7 @@ this.inspectedNode = class extends ExtensionAPI {
       inspector.selection.on("new-node-front", onNodeChange);
     };
 
-    const _unobserve = async (clientId) => {
+    const _unobserveChange = async (clientId) => {
       const { inspector, onNodeChange } = _clients.get(clientId);
       // During the DevTools close, the references to the target and fronts may become
       // invalidated before dependencies have a chance to unregister. This guard is here
@@ -45,6 +45,19 @@ this.inspectedNode = class extends ExtensionAPI {
       }
 
       _clients.delete(clientId);
+    };
+
+    const _observeProgress = async (fireForEvent, clientId) => {
+      await _setupClientIfNeeded(clientId);
+      const client = _clients.get(clientId);
+      client.onProgress = () => {
+        fireForEvent.asyncWithoutClone({});
+      };
+    };
+
+    const _unobserveProgress = async (clientId) => {
+      const client = _clients.get(clientId);
+      delete client.onProgress;
     };
 
     const _getSubtreeNodes = async (node) => {
@@ -85,7 +98,7 @@ this.inspectedNode = class extends ExtensionAPI {
     const _getStylesInSubtree = async (clientId) => {
       await _setupClientIfNeeded(clientId);
 
-      const { inspector } = _clients.get(clientId);
+      const { inspector, onProgress } = _clients.get(clientId);
       if (!inspector.selection.isConnected()) {
         return [];
       }
@@ -93,6 +106,10 @@ this.inspectedNode = class extends ExtensionAPI {
       const styles = [];
       for (const subnode of await _getSubtreeNodes(inspector.selection.nodeFront)) {
         styles.push(...(await _getAppliedStyle(inspector, subnode, {})));
+
+        if (onProgress) {
+          onProgress();
+        }
       }
       return styles;
     };
@@ -161,10 +178,22 @@ this.inspectedNode = class extends ExtensionAPI {
             context,
             name: "experiments.inspectedNode.onChange",
             register: (fire, clientId) => {
-              _observe(fire, clientId);
+              _observeChange(fire, clientId);
 
               return () => {
-                _unobserve(clientId);
+                _unobserveChange(clientId);
+              };
+            },
+          }).api(),
+
+          onProgress: new ExtensionCommon.EventManager({
+            context,
+            name: "experiments.inspectedNode.onProgress",
+            register: (fire, clientId) => {
+              _observeProgress(fire, clientId);
+
+              return () => {
+                _unobserveProgress(clientId);
               };
             },
           }).api()

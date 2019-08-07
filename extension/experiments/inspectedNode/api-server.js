@@ -14,10 +14,22 @@ browser.runtime.onConnect.addListener(port => {
     port.postMessage({ method: "onChange" });
   }
 
+  const onProgress = () => {
+    port.postMessage({ method: "onProgress" });
+  }
+
   const onMessage = async ({ method, timestamp }) => {
     switch (method) {
       case "onChange": {
         browser.experiments.inspectedNode.onChange.addListener(onChange, clientId);
+        break;
+      }
+      case "onProgress": {
+        browser.experiments.inspectedNode.onProgress.addListener(onProgress, clientId);
+        break;
+      }
+      case "removeOnProgress": {
+        browser.experiments.inspectedNode.onProgress.removeListener(onProgress);
         break;
       }
       default: {
