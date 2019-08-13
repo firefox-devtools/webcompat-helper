@@ -38,7 +38,8 @@ async function _updateSelectedNode(selectedNode) {
 }
 
 async function _updateSubtree(selectedNode) {
-  const ulEl = document.querySelector("#subtree ul");
+  const subtreeEl = document.getElementById("subtree");
+  const ulEl = subtreeEl.querySelector("ul");
 
   if (!_isValidElement(selectedNode)) {
     _render([], ulEl);
@@ -47,7 +48,14 @@ async function _updateSubtree(selectedNode) {
 
   const issues = [];
 
-  for (const node of await browser.experiments.inspectedNode.getNodesInSubtree()) {
+  subtreeEl.classList.add("processing");
+  const progressEl = subtreeEl.querySelector("aside label");
+
+  progressEl.textContent = "Getting all descendants of the selected node";
+  const nodesInSubtree = await browser.experiments.inspectedNode.getNodesInSubtree();
+
+  progressEl.textContent = "Getting web compatibility issues for HTML element";
+  for (const node of nodesInSubtree) {
     if (!_isValidElement(node)) {
       continue
     }
@@ -57,13 +65,19 @@ async function _updateSubtree(selectedNode) {
       ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
   }
 
+  progressEl.textContent = "Getting all descendants of the selected node";
   const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
+
+  progressEl.textContent = "Getting web compatibility issues for CSS styles";
   for (const { declarations } of declarationBlocks) {
     issues.push(
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
   }
 
+  progressEl.textContent = "Rendering all issues";
   _render(issues, ulEl);
+
+  subtreeEl.classList.remove("processing");
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {

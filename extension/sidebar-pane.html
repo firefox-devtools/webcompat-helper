@@ -122,6 +122,49 @@
     .deprecated, .experimental {
       font-weight: 600;
     }
+
+    #subtree aside {
+      display: none;
+      padding-block: 12px;
+      padding-inline: 40px;
+    }
+
+    #subtree.processing aside {
+      display: block;
+    }
+
+    #subtree.processing ul {
+      display: none;
+    }
+
+    #subtree aside label {
+      display: flex;
+      align-items: center;
+    }
+
+    /* import from devtools/client/themes/common.css */
+    /* Throbbers */
+    .devtools-throbber::before {
+      content: "";
+      display: inline-block;
+      vertical-align: bottom;
+      margin-inline-end: 0.5em;
+      width: 1em;
+      height: 1em;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: 1.1s linear throbber-spin infinite;
+    }
+
+    @keyframes throbber-spin {
+      from {
+        transform: none;
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
     </style>
     <script src="experiments/inspectedNode/api-client.js"></script>
     <script type="module" src="sidebar-pane.js"></script>
@@ -134,6 +177,9 @@
     <section id="subtree">
       <header>Issues for the selected element's subtree</header>
       <ul></ul>
+      <aside>
+        <label class="devtools-throbber"></label>
+      </aside>
     </section>
   </body>
 </html>
