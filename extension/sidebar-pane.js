@@ -15,10 +15,10 @@ async function _update() {
 }
 
 async function _updateSelectedNode(selectedNode) {
-  const ulEl = document.querySelector("#selected ul");
+  const issueListEl = document.querySelector("#selected ul");
 
   if (!_isValidElement(selectedNode)) {
-    _render([], ulEl);
+    _render([], issueListEl);
     return;
   }
 
@@ -34,20 +34,28 @@ async function _updateSelectedNode(selectedNode) {
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
   }
 
-  _render(issues, ulEl);
+  _render(issues, issueListEl);
 }
 
 async function _updateSubtree(selectedNode) {
-  const ulEl = document.querySelector("#subtree ul");
+  const subtreeEl = document.getElementById("subtree");
+  const issueListEl = subtreeEl.querySelector("ul");
 
   if (!_isValidElement(selectedNode)) {
-    _render([], ulEl);
+    _render([], issueListEl);
     return;
   }
 
   const issues = [];
 
-  for (const node of await browser.experiments.inspectedNode.getNodesInSubtree()) {
+  subtreeEl.classList.add("processing");
+  const progressEl = subtreeEl.querySelector("aside label");
+
+  progressEl.textContent = "Getting all descendants of the selected node";
+  const nodesInSubtree = await browser.experiments.inspectedNode.getNodesInSubtree();
+
+  progressEl.textContent = "Getting web compatibility issues for HTML element";
+  for (const node of nodesInSubtree) {
     if (!_isValidElement(node)) {
       continue
     }
@@ -57,43 +65,49 @@ async function _updateSubtree(selectedNode) {
       ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
   }
 
+  progressEl.textContent = "Getting all descendants of the selected node";
   const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
+
+  progressEl.textContent = "Getting web compatibility issues for CSS styles";
   for (const { declarations } of declarationBlocks) {
     issues.push(
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
   }
 
-  _render(issues, ulEl);
+  progressEl.textContent = "Rendering all issues";
+  _render(issues, issueListEl);
+
+  subtreeEl.classList.remove("processing");
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {
   return nodeType === Node.ELEMENT_NODE && !isCustomElement;
 }
 
-function _render(issues, ulEl) {
-  ulEl.innerHTML = "";
+function _render(issues, issueListEl) {
+  issueListEl.innerHTML = "";
 
   if (!issues.length) {
-    const liEl = document.createElement("li");
-    liEl.textContent = "No issues";
-    ulEl.appendChild(liEl);
+    const noIssueEl = document.createElement("li");
+    noIssueEl.textContent = "No issues";
+    issueListEl.appendChild(noIssueEl);
   } else {
     for (const issue of issues) {
-      ulEl.appendChild(_renderIssue(issue));
+      issueListEl.appendChild(_renderIssue(issue));
     }
   }
 }
 
 function _renderIssue(issue) {
-  const liEl = document.createElement("li");
+  const issueEl = document.createElement("li");
   const subjectEl = _renderSubject(issue);
   const predicateEl = _renderPredicate(issue);
-  liEl.appendChild(subjectEl);
-  liEl.appendChild(predicateEl);
+  issueEl.appendChild(subjectEl);
+  issueEl.appendChild(predicateEl);
 
-  liEl.classList.add((issue.deprecated ? "warning" : "information"));
+  issueEl.classList.add((issue.deprecated ? "warning" : "information"));
 
-  return liEl;
+  return issueEl;
 }
 
 function _renderSubject(issue) {
