@@ -335,10 +335,12 @@ class WebCompat {
                                            : state === _SUPPORT_STATE.UNSUPPORTED;
     });
     const { deprecated, experimental } = this._getStatus(database, ...terms);
+    const url = this._getMDNLink(database, ...terms);
 
     return {
       database,
       terms,
+      url,
       deprecated,
       experimental,
       unsupportedBrowsers,
@@ -423,6 +425,22 @@ class WebCompat {
     }
 
     return summaries;
+  }
+
+  _getMDNLink(compatNode, ...terms) {
+    // In case of CSS value of particular CSS property such as `space-evenly` of
+    // `align-content`, the link is not in the compat table of the CSS value.
+    // Thus, we get the link while tracing the parents.
+    for (; terms.length > 0; terms.pop()) {
+      const compatTable = this._getCompatTable(compatNode, terms);
+      const url = compatTable ? compatTable.mdn_url : null;
+
+      if (url) {
+        return url;
+      }
+    }
+
+    return null;
   }
 
   _getTermPath(database, ...terms) {
