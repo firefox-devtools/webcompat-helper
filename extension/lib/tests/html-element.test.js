@@ -28,6 +28,7 @@ test("a non supported html element", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
     element: elementName,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/main",
     unsupportedBrowsers: [FIREFOX_1],
   };
   assertIssue(issues[0], expectedIssue);
@@ -41,6 +42,7 @@ test("an experimental html element", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
     element: elementName,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/menu",
     experimental: true,
     unsupportedBrowsers: [],
   };
@@ -55,6 +57,7 @@ test("a deprecated html element", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
     element: elementName,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/frame",
     deprecated: true,
     unsupportedBrowsers: [],
   };
@@ -70,6 +73,7 @@ test("an invalid html element", () => {
 function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.type).toBe(expectedIssue.type);
   expect(actualIssue.element).toBe(expectedIssue.element);
+  expect(actualIssue.url).toBe(expectedIssue.url);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);
   expect(!!actualIssue.unsupportedBrowsers).toBe(!!expectedIssue.unsupportedBrowsers);

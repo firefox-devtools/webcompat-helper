@@ -47,6 +47,7 @@ test("a non supported css value", () => {
     type: WebCompat.ISSUE_TYPE.CSS_VALUE,
     property: "display",
     value: "inline-table",
+    url: "https://developer.mozilla.org/docs/Web/CSS/display",
     unsupportedBrowsers: [FIREFOX_1],
   };
   assertIssue(issues[0], expectedIssue);
@@ -68,6 +69,7 @@ test("an experimental css value", () => {
     experimental: true,
     property: "display",
     value: "flow-root",
+    url: "https://developer.mozilla.org/docs/Web/CSS/display",
     unsupportedBrowsers: [],
   };
   assertIssue(issues[0], expectedIssue);
@@ -89,6 +91,7 @@ test("an deprecated css value", () => {
     deprecated: true,
     property: "display",
     value: "subgrid",
+    url: "https://developer.mozilla.org/docs/Web/CSS/display",
     unsupportedBrowsers: [FIREFOX_69],
   };
   assertIssue(issues[0], expectedIssue);
@@ -109,6 +112,7 @@ test("mapped css types", () => {
     type: WebCompat.ISSUE_TYPE.CSS_VALUE,
     property: "padding",
     value: "1rem",
+    url: "https://developer.mozilla.org/docs/Web/CSS/length",
     unsupportedBrowsers: [FIREFOX_1],
   };
   assertIssue(issues[0], expectedIssue);
@@ -142,6 +146,7 @@ test("mixed type in shorthand property", () => {
       type: WebCompat.ISSUE_TYPE.CSS_VALUE,
       property: "padding",
       value: "1rem",
+      url: "https://developer.mozilla.org/docs/Web/CSS/length",
       unsupportedBrowsers: [FIREFOX_1],
     },
     {
@@ -149,6 +154,7 @@ test("mixed type in shorthand property", () => {
       experimental: true,
       property: "padding",
       value: "1mozmm",
+      url: "https://developer.mozilla.org/docs/Web/CSS/length",
       unsupportedBrowsers: [FIREFOX_1],
     },
   ];
@@ -181,6 +187,7 @@ test("aliases does not support all browsers", () => {
     property: "background-image",
     value: "linear-gradient",
     aliases: ["linear-gradient", "-moz-linear-gradient"],
+    url: "https://developer.mozilla.org/docs/Web/CSS/linear-gradient",
     unsupportedBrowsers: [FIREFOX_1]
   };
   assertIssue(issues[0], expectedIssue);
@@ -208,6 +215,7 @@ function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.property).toBe(expectedIssue.property);
   expect(actualIssue.value).toBe(expectedIssue.value);
   expect(actualIssue.issueTerm).toBe(expectedIssue.issueTerm);
+  expect(actualIssue.url).toBe(expectedIssue.url);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);
   expect(!!actualIssue.unsupportedBrowsers).toBe(!!expectedIssue.unsupportedBrowsers);

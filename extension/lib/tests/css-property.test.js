@@ -55,6 +55,7 @@ test("a non supported property", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     property: "grid-column",
+    url: "https://developer.mozilla.org/docs/Web/CSS/grid-column",
     unsupportedBrowsers: [FIREFOX_1],
   };
   assertIssue(issues[0], expectedIssue);
@@ -84,6 +85,7 @@ test("a deprecated property", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     property: "clip",
+    url: "https://developer.mozilla.org/docs/Web/CSS/clip",
     deprecated: true,
     unsupportedBrowsers: [],
   };
@@ -103,6 +105,7 @@ test("a experimental property", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     property: "border-block-color",
+    url: "https://developer.mozilla.org/docs/Web/CSS/border-block-color",
     experimental: true,
     unsupportedBrowsers: [],
   };
@@ -122,6 +125,7 @@ test("a property having some issues", () => {
   const expectedIssue = {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY,
     property: "font-variant-alternates",
+    url: "https://developer.mozilla.org/docs/Web/CSS/font-variant-alternates",
     deprecated: true,
     experimental: true,
     unsupportedBrowsers: [FIREFOX_1],
@@ -144,6 +148,7 @@ test("a aliased property which does not support all", () => {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY_ALIASES,
     property: "user-select",
     aliases: ["-moz-user-select"],
+    url: "https://developer.mozilla.org/docs/Web/CSS/user-select",
     experimental: true,
     unsupportedBrowsers: [SAFARI_13],
   };
@@ -168,6 +173,7 @@ test("aliased properties which support all", () => {
     type: WebCompat.ISSUE_TYPE.CSS_PROPERTY_ALIASES,
     property: "user-select",
     aliases: ["-moz-user-select", "-webkit-user-select"],
+    url: "https://developer.mozilla.org/docs/Web/CSS/user-select",
     experimental: true,
     unsupportedBrowsers: [],
   };
@@ -177,6 +183,7 @@ test("aliased properties which support all", () => {
 function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.type).toBe(expectedIssue.type);
   expect(actualIssue.property).toBe(expectedIssue.property);
+  expect(actualIssue.url).toBe(expectedIssue.url);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);
   expect(!!actualIssue.unsupportedBrowsers).toBe(!!expectedIssue.unsupportedBrowsers);
