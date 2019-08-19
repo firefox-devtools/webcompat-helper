@@ -14,7 +14,11 @@ browser.runtime.onConnect.addListener(port => {
     port.postMessage({ method: "onChange" });
   }
 
-  const onMessage = async ({ method, timestamp }) => {
+  const onMessage = async ({ namespace, method, timestamp }) => {
+    if (namespace !== "browser.experiments.inspectedNode") {
+      return;
+    }
+
     switch (method) {
       case "onChange": {
         browser.experiments.inspectedNode.onChange.addListener(onChange, clientId);

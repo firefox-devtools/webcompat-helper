@@ -14,6 +14,11 @@ const FIREFOX_1 = {
   version: "1",
 };
 
+const EDGE_18 = {
+  id: "edge",
+  version: "18",
+};
+
 test("a supported global attribute", () => {
   const elementName = "body";
   const attributes = [{ name: "id", value: "test-id" }];
@@ -26,6 +31,25 @@ test("a supported global attribute but different element", () => {
   const attributes = [{ name: "id", value: "test-id" }];
   const issues = webcompat.getHTMLElementIssues(elementName, attributes, [FIREFOX_69]);
   expect(issues.length).toBe(0);
+});
+
+test("a non supported global attribute", () => {
+  const elementName = "body";
+  const attributeName = "is";
+  const attributeValue = "test";
+  const attributes = [{ name: attributeName, value: attributeValue }];
+  const issues = webcompat.getHTMLElementIssues(elementName, attributes, [EDGE_18]);
+  expect(issues.length).toBe(1);
+
+  const expectedIssue = {
+    type: WebCompat.ISSUE_TYPE.HTML_ATTRIBUTE,
+    element: elementName,
+    attribute: attributeName,
+    value: attributeValue,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Global_attributes/is",
+    unsupportedBrowsers: [EDGE_18],
+  };
+  assertIssue(issues[0], expectedIssue);
 });
 
 test("a non supported html attribute", () => {
@@ -42,6 +66,7 @@ test("a non supported html attribute", () => {
     element: elementName,
     attribute: attributeName,
     value: attributeValue,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/a",
     unsupportedBrowsers: [FIREFOX_1],
   };
   assertIssue(issues[0], expectedIssue);
@@ -58,6 +83,7 @@ test("an experimental html attribute", () => {
   const expectedElementIssue = {
     type: WebCompat.ISSUE_TYPE.HTML_ELEMENT,
     element: elementName,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/menu",
     experimental: true,
     unsupportedBrowsers: [],
   };
@@ -68,6 +94,7 @@ test("an experimental html attribute", () => {
     element: elementName,
     attribute: attributeName,
     value: attributeValue,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/menu",
     experimental: true,
     unsupportedBrowsers: [],
   };
@@ -87,6 +114,7 @@ test("a deprecated html attribute", () => {
     element: elementName,
     attribute: attributeName,
     value: attributeValue,
+    url: "https://developer.mozilla.org/docs/Web/HTML/Element/table",
     deprecated: true,
     unsupportedBrowsers: [],
   };
@@ -115,6 +143,7 @@ function assertIssue(actualIssue, expectedIssue) {
   expect(actualIssue.element).toBe(expectedIssue.element);
   expect(actualIssue.attribute).toBe(expectedIssue.attribute);
   expect(actualIssue.value).toBe(expectedIssue.value);
+  expect(actualIssue.url).toBe(expectedIssue.url);
   expect(!!actualIssue.invalid).toBe(!!expectedIssue.invalid);
   expect(!!actualIssue.deprecated).toBe(!!expectedIssue.deprecated);
   expect(!!actualIssue.experimental).toBe(!!expectedIssue.experimental);

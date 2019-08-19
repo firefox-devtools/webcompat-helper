@@ -13,7 +13,8 @@
   ],
   "background": {
     "scripts": [
-      "experiments/inspectedNode/api-server.js"
+      "experiments/inspectedNode/api-server.js",
+      "proxy/tabs/api-server.js"
     ]
   },
   "devtools_page": "devtools.html",

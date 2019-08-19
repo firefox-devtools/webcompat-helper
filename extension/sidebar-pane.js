@@ -111,19 +111,19 @@ function _renderIssue(issue) {
 }
 
 function _renderSubject(issue) {
-  const { type } = issue;
+  const { type, url } = issue;
   const subjectEl = document.createElement("span");
 
   switch (type) {
     case WebCompat.ISSUE_TYPE.CSS_PROPERTY: {
       subjectEl.append(
-        _renderTerm(issue.property, ["property", "issue"])
+        _renderTerm(issue.property, ["property", "issue"], url)
       );
       break;
     }
     case WebCompat.ISSUE_TYPE.CSS_PROPERTY_ALIASES: {
       subjectEl.append(
-        _renderTerms(issue.aliases, ["property", "alias", "issue"]),
+        _renderTerms(issue.aliases, ["property", "alias", "issue"], url),
         _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
       );
       break;
@@ -131,14 +131,14 @@ function _renderSubject(issue) {
     case WebCompat.ISSUE_TYPE.CSS_VALUE: {
       subjectEl.append(
         _renderTerm(`${issue.property}: `),
-        _renderTerm(issue.value, ["value", "issue"])
+        _renderTerm(issue.value, ["value", "issue"], url)
       );
       break;
     }
     case WebCompat.ISSUE_TYPE.CSS_VALUE_ALIASES: {
       subjectEl.append(
         _renderTerm(`${issue.property}: `),
-        _renderTerms(issue.aliases, ["value", "alias", "issue"]),
+        _renderTerms(issue.aliases, ["value", "alias", "issue"], url),
         _renderTerm(` ${ issue.aliases.length === 1 ? "alias" : "aliases" }`)
       );
       break;
@@ -147,14 +147,14 @@ function _renderSubject(issue) {
       subjectEl.append(
         _renderTerm(issue.element.toLowerCase(), ["element"]),
         _renderTerm(" "),
-        _renderTerm(issue.attribute.toLowerCase(), ["attribute", "issue"]),
+        _renderTerm(issue.attribute.toLowerCase(), ["attribute", "issue"], url),
         _renderTerm(" attribute"),
       );
       break;
     }
     case WebCompat.ISSUE_TYPE.HTML_ELEMENT: {
       subjectEl.append(
-        _renderTerm(issue.element.toLowerCase(), ["element", "issue"])
+        _renderTerm(issue.element.toLowerCase(), ["element", "issue"], url)
       );
       break;
     }
@@ -251,22 +251,36 @@ function _renderBrowsersElement(browsers) {
   return browsersEl;
 }
 
-function _renderTerms(terms, classes) {
+function _renderTerms(terms, classes, url) {
   const containerEl = document.createElement("span");
 
   for (const term of terms) {
-    const termEl = _renderTerm(term, classes);
+    const termEl = _renderTerm(term, classes, url);
     containerEl.appendChild(termEl);
   }
 
   return containerEl;
 }
 
-function _renderTerm(text, classes = []) {
-  const termEl = document.createElement("span");
+function _renderTerm(text, classes = [], url = null) {
+  const tagName = url ? "a" : "span";
+  const termEl = document.createElement(tagName);
   termEl.classList.add(...classes);
   termEl.textContent = text;
+
+  if (url) {
+    termEl.href = url;
+    termEl.title = url;
+    termEl.addEventListener("click", _onClickLink);
+  }
+
   return termEl;
+}
+
+function _onClickLink(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  browser.tabs.create({ url: e.target.href });
 }
 
 async function _updateCSSValueEnabled() {
