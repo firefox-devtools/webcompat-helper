@@ -68,7 +68,11 @@
         };
 
         port.onMessage.addListener(listener);
-        port.postMessage({ method, timestamp });
+        port.postMessage({
+          namespace: "browser.experiments.inspectedNode",
+          method,
+          timestamp,
+        });
       });
     }
   };

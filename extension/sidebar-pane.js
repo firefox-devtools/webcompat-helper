@@ -271,9 +271,16 @@ function _renderTerm(text, classes = [], url = null) {
   if (url) {
     termEl.href = url;
     termEl.title = url;
+    termEl.addEventListener("click", _onClickLink);
   }
 
   return termEl;
+}
+
+function _onClickLink(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  browser.tabs.create({ url: e.target.href });
 }
 
 async function _updateCSSValueEnabled() {
