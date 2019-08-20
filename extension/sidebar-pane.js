@@ -163,7 +163,43 @@ function _renderIssue(issue) {
 
   issueEl.classList.add((issue.deprecated ? "warning" : "information"));
 
+  if (issue.nodes) {
+    issueEl.append(_renderOccurrences(issue));
+  }
+
   return issueEl;
+}
+
+function _renderOccurrences({ nodes }) {
+  const occurrencesEl = document.createElement("section");
+  occurrencesEl.classList.add("occurrences");
+
+  const nodelistEl = document.createElement("ul");
+  for (const { id, className, nodeName } of nodes) {
+    const nodeEl = document.createElement("li");
+    nodeEl.append(_renderTerm(nodeName.toLowerCase(), ["node-name"]));
+
+    if (id) {
+      nodeEl.append(_renderTerm(`#${ id }`, ["node-id"]));
+    } else if (className.length) {
+      nodeEl.append(_renderTerm(`.${ className.replace(/\s+/g, ".") }`, ["node-class"]));
+    }
+    nodelistEl.append(nodeEl);
+  }
+
+  if (nodes.length !== 1) {
+    const summaryEl = document.createElement("summary");
+    summaryEl.textContent = `${nodes.length} occurrences`;
+
+    const detailsEl = document.createElement("details");
+    detailsEl.append(summaryEl, nodelistEl);
+
+    occurrencesEl.append(detailsEl);
+  } else {
+    occurrencesEl.append(nodelistEl);
+  }
+
+  return occurrencesEl;
 }
 
 function _renderSubject(issue) {
