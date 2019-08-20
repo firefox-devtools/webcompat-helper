@@ -86,10 +86,54 @@ async function _updateSubtree(selectedNode) {
     )
   }
 
+  progressEl.textContent = "Grouping all issues";
+  const issueGroups = _groupIssues(issues);
+
   progressEl.textContent = "Rendering all issues";
-  _render(issues, issueListEl);
+  _render(issueGroups, issueListEl);
 
   subtreeEl.classList.remove("processing");
+}
+
+/**
+ * Group by the issue cause.
+ * @param {Array} issues
+ *        The issue list which WebCompat library returns. Also the issue in the list
+ *        assume to contain the node information additionaly.
+ * @return {Array}
+ *         Array of issues grouped. The issue has `nodes` attribute which contains the
+ *         node informations where caused the issue.
+ */
+function _groupIssues(issues) {
+  const issueGroups = [];
+
+  for (const issue of issues) {
+    let issueGroup = issueGroups.find(i => {
+      return i.type === issue.type &&
+             i.property === issue.property &&
+             i.element === issue.element &&
+             i.attribute === issue.attribute &&
+             i.value === issue.value;
+    });
+
+    if (!issueGroup) {
+      issueGroup = Object.assign({}, issue, { nodes: [], node: undefined });
+      issueGroups.push(issueGroup);
+    }
+
+    const isNodeContainedInGroup = issueGroup.nodes.some(n => {
+      return n.nodeName === issue.node.nodeName &&
+             n.nodeType === issue.node.nodeType &&
+             n.id === issue.node.id &&
+             n.className === issue.node.className;
+    });
+
+    if (!isNodeContainedInGroup) {
+      issueGroup.nodes.push(issue.node);
+    }
+  }
+
+  return issueGroups;
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {
