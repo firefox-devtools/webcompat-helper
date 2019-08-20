@@ -13,12 +13,21 @@
   ],
   "background": {
     "scripts": [
+      "experiments/highlighter/api-server.js",
       "experiments/inspectedNode/api-server.js",
       "proxy/tabs/api-server.js"
     ]
   },
   "devtools_page": "devtools.html",
   "experiment_apis": {
+    "highlighter": {
+      "schema": "experiments/highlighter/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "script": "experiments/highlighter/api.js",
+        "paths": [["experiments", "highlighter"]]
+      }
+    },
     "inspectedNode": {
       "schema": "experiments/inspectedNode/schema.json",
       "parent": {

@@ -1,0 +1,18 @@
+[
+  {
+    "namespace": "experiments.highlighter",
+    "functions": [
+      {
+        "name": "highlight",
+        "type": "function",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "selector"
+          }
+        ],
+        "async": true
+      }
+    ]
+  }
+]

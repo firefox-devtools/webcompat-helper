@@ -184,6 +184,8 @@ function _renderOccurrences({ nodes }) {
     } else if (className.length) {
       nodeEl.append(_renderTerm(`.${ className.replace(/\s+/g, ".") }`, ["node-class"]));
     }
+
+    nodeEl.addEventListener("click", _onClickNodeSelector);
     nodelistEl.append(nodeEl);
   }
 
@@ -373,6 +375,13 @@ function _onClickLink(e) {
   e.stopPropagation();
   e.preventDefault();
   browser.tabs.create({ url: e.target.href });
+}
+
+function _onClickNodeSelector(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  const selector = e.target.closest("li").textContent;
+  browser.experiments.highlighter.highlight(selector);
 }
 
 async function _updateCSSValueEnabled() {
