@@ -62,16 +62,28 @@ async function _updateSubtree(selectedNode) {
 
     const { attributes, nodeName } = node;
     issues.push(
-      ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
+      ...
+       _webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers)
+                 .map(issue => {
+                   issue.node = node;
+                   return issue;
+                 })
+    )
   }
 
   progressEl.textContent = "Getting all descendants of the selected node";
   const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
 
   progressEl.textContent = "Getting web compatibility issues for CSS styles";
-  for (const { declarations } of declarationBlocks) {
+  for (const { node, declarations } of declarationBlocks) {
     issues.push(
-      ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
+      ...
+       _webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers)
+                 .map(issue => {
+                   issue.node = node;
+                   return issue;
+                 })
+    )
   }
 
   progressEl.textContent = "Rendering all issues";
