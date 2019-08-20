@@ -33,7 +33,7 @@
             }
           });
 
-          port.postMessage({ method });
+          port.postMessage({ namespace: "browser.experiments.inspectedNode", method });
         } else {
           this._listeners.push(listener);
         }
