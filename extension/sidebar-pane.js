@@ -62,22 +62,78 @@ async function _updateSubtree(selectedNode) {
 
     const { attributes, nodeName } = node;
     issues.push(
-      ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
+      ...
+       _webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers)
+                 .map(issue => {
+                   issue.node = node;
+                   return issue;
+                 })
+    )
   }
 
   progressEl.textContent = "Getting all descendants of the selected node";
   const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
 
   progressEl.textContent = "Getting web compatibility issues for CSS styles";
-  for (const { declarations } of declarationBlocks) {
+  for (const { node, declarations } of declarationBlocks) {
     issues.push(
-      ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
+      ...
+       _webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers)
+                 .map(issue => {
+                   issue.node = node;
+                   return issue;
+                 })
+    )
   }
 
+  progressEl.textContent = "Grouping all issues";
+  const issueGroups = _groupIssues(issues);
+
   progressEl.textContent = "Rendering all issues";
-  _render(issues, issueListEl);
+  _render(issueGroups, issueListEl);
 
   subtreeEl.classList.remove("processing");
+}
+
+/**
+ * Group by the issue cause.
+ * @param {Array} issues
+ *        The issue list which WebCompat library returns. Also the issue in the list
+ *        assume to contain the node information additionaly.
+ * @return {Array}
+ *         Array of issues grouped. The issue has `nodes` attribute which contains the
+ *         node informations where caused the issue.
+ */
+function _groupIssues(issues) {
+  const issueGroups = [];
+
+  for (const issue of issues) {
+    let issueGroup = issueGroups.find(i => {
+      return i.type === issue.type &&
+             i.property === issue.property &&
+             i.element === issue.element &&
+             i.attribute === issue.attribute &&
+             i.value === issue.value;
+    });
+
+    if (!issueGroup) {
+      issueGroup = Object.assign({}, issue, { nodes: [], node: undefined });
+      issueGroups.push(issueGroup);
+    }
+
+    const isNodeContainedInGroup = issueGroup.nodes.some(n => {
+      return n.nodeName === issue.node.nodeName &&
+             n.nodeType === issue.node.nodeType &&
+             n.id === issue.node.id &&
+             n.className === issue.node.className;
+    });
+
+    if (!isNodeContainedInGroup) {
+      issueGroup.nodes.push(issue.node);
+    }
+  }
+
+  return issueGroups;
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {
@@ -107,7 +163,45 @@ function _renderIssue(issue) {
 
   issueEl.classList.add((issue.deprecated ? "warning" : "information"));
 
+  if (issue.nodes) {
+    issueEl.append(_renderOccurrences(issue));
+  }
+
   return issueEl;
+}
+
+function _renderOccurrences({ nodes }) {
+  const occurrencesEl = document.createElement("section");
+  occurrencesEl.classList.add("occurrences");
+
+  const nodelistEl = document.createElement("ul");
+  for (const { id, className, nodeName } of nodes) {
+    const nodeEl = document.createElement("li");
+    nodeEl.append(_renderTerm(nodeName.toLowerCase(), ["node-name"]));
+
+    if (id) {
+      nodeEl.append(_renderTerm(`#${ id }`, ["node-id"]));
+    } else if (className.length) {
+      nodeEl.append(_renderTerm(`.${ className.replace(/\s+/g, ".") }`, ["node-class"]));
+    }
+
+    nodeEl.addEventListener("click", _onClickNodeSelector);
+    nodelistEl.append(nodeEl);
+  }
+
+  if (nodes.length !== 1) {
+    const summaryEl = document.createElement("summary");
+    summaryEl.textContent = `${nodes.length} occurrences`;
+
+    const detailsEl = document.createElement("details");
+    detailsEl.append(summaryEl, nodelistEl);
+
+    occurrencesEl.append(detailsEl);
+  } else {
+    occurrencesEl.append(nodelistEl);
+  }
+
+  return occurrencesEl;
 }
 
 function _renderSubject(issue) {
@@ -281,6 +375,13 @@ function _onClickLink(e) {
   e.stopPropagation();
   e.preventDefault();
   browser.tabs.create({ url: e.target.href });
+}
+
+function _onClickNodeSelector(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  const selector = e.target.closest("li").textContent;
+  browser.experiments.highlighter.highlight(selector);
 }
 
 async function _updateCSSValueEnabled() {

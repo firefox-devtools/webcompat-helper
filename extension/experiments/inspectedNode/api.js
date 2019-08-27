@@ -66,7 +66,9 @@ this.inspectedNode = class extends ExtensionAPI {
         const { actorID: ruleId } = rule;
         let { declarations } = rule;
         declarations = declarations.filter(d => !d.commentOffsets);
-        return declarations.length ? { ruleId, declarations } : null;
+        return declarations.length
+                 ? { ruleId, declarations, node: _getNodeInfo(node) }
+                 : null;
       }).filter(rule => !!rule);
     };
 
@@ -98,8 +100,23 @@ this.inspectedNode = class extends ExtensionAPI {
     };
 
     const _getNodeInfo = node => {
-      const { attributes, nodeName, nodeType, customElementLocation } = node;
-      return { attributes, nodeName, nodeType, isCustomElement: !!customElementLocation };
+      const {
+        id,
+        className,
+        attributes,
+        nodeName,
+        nodeType,
+        customElementLocation,
+      } = node;
+
+      return {
+        id,
+        className: className.trim(),
+        attributes,
+        nodeName,
+        nodeType,
+        isCustomElement: !!customElementLocation,
+      };
     };
 
     const _getNode = async (clientId) => {

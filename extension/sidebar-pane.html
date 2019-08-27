@@ -15,6 +15,10 @@
       line-height: 1.8;
     }
 
+    a {
+      text-decoration: none;
+    }
+
     header {
       color: #0c0c0d;
       background-color: #f9f9fa;
@@ -25,10 +29,6 @@
 
     header:not(:first-child) {
       border-top: 1px solid #e0e0e2;
-    }
-
-    a {
-      text-decoration: none;
     }
 
     li {
@@ -128,6 +128,33 @@
       font-weight: 600;
     }
 
+    /* occurrences part */
+    .occurrences details summary {
+      cursor: pointer;
+      color: #b6babf;
+    }
+
+    .occurrences ul {
+      line-height: 1.2;
+      padding-inline-start: 16px;
+      padding-block-start: 2px;
+    }
+
+    .occurrences li {
+      font-family: monospace;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .occurrences .node-name {
+      color: #0074e8;
+    }
+
+    .occurrences .node-id,
+    .occurrences .node-class {
+      color: #dd00a9;
+    }
+
     #subtree aside {
       display: none;
       padding-block: 12px;
@@ -166,6 +193,7 @@
       to { transform: rotate(1turn); }
     }
     </style>
+    <script src="experiments/highlighter/api-client.js"></script>
     <script src="experiments/inspectedNode/api-client.js"></script>
     <script src="proxy/tabs/api-client.js"></script>
     <script type="module" src="sidebar-pane.js"></script>
