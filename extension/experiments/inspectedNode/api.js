@@ -18,7 +18,7 @@ this.inspectedNode = class extends ExtensionAPI {
       client.onNodeChange = onNodeChange;
 
       const { inspector } = client;
-      const changesFront = await inspector.target.getFront("changes");
+      const changesFront = await inspector.currentTarget.getFront("changes");
       // We call `allChanges()` to activate emiting all events from the actor now.
       // When the Bug 1563757 fixes, we can remove.
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1563757
@@ -35,7 +35,7 @@ this.inspectedNode = class extends ExtensionAPI {
       // invalidated before dependencies have a chance to unregister. This guard is here
       // to prevent throwing errors as a result of trying to work on an unavailable front.
       try {
-        const changesFront = await inspector.target.getFront("changes");
+        const changesFront = await inspector.currentTarget.getFront("changes");
         changesFront.off("clear-changes", onNodeChange);
         changesFront.off("remove-change", onNodeChange);
         changesFront.off("add-change", onNodeChange);
