@@ -271,8 +271,8 @@ function _renderPredicate(issue) {
       predicateEl.appendChild(_renderTerm(" and "));
     }
 
-    const auxiliaryVerb = !aliases || aliases.length === 1 ? "does" : "do";
-    predicateEl.appendChild(_renderTerm(` ${ auxiliaryVerb } not support`));
+    const auxiliaryVerb = !aliases || aliases.length === 1 ? "isn't" : "aren't";
+    predicateEl.appendChild(_renderTerm(` ${ auxiliaryVerb } supported in `));
     predicateEl.appendChild(_renderBrowsersElement(unsupportedBrowsers));
   }
 
