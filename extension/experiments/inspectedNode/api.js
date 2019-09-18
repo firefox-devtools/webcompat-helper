@@ -5,6 +5,7 @@ this.inspectedNode = class extends ExtensionAPI {
     const { Services } = Cu.import("resource://gre/modules/Services.jsm");
     const { require } = Cu.import("resource://devtools/shared/Loader.jsm");
     const { gDevTools } = require("devtools/client/framework/devtools");
+    const { ELEMENT_NODE } = require("devtools/shared/dom-node-constants");
 
     const _clients = new Map();
 
@@ -50,9 +51,25 @@ this.inspectedNode = class extends ExtensionAPI {
     };
 
     const _getSubtreeNodes = async (node) => {
+      if (!node.hasChildren) {
+        return [];
+      }
+
       const nodes = [];
 
-      for (const child of await node.treeChildren()) {
+      // At first, get the children cache in nodeFront.
+      let children = await node.treeChildren();
+
+      if (children.length === 0) {
+        // Otherwise, get via the walker.
+        await node.walkerFront.children(node);
+        children = await node.treeChildren();
+      }
+
+      // We see element type only
+      children = children.filter(node => node.nodeType === ELEMENT_NODE);
+
+      for (const child of children) {
         nodes.push(child);
         nodes.push(...(await _getSubtreeNodes(child)));
       }
