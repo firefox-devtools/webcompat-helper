@@ -48,15 +48,15 @@
       return this._invoke("getNodesInSubtree");
     },
 
-    async getStyle() {
-      return this._invoke("getStyle");
+    async getStyle(actoriID, skipPseudo) {
+      return this._invoke("getStyle", [actoriID, skipPseudo]);
     },
 
     async getStylesInSubtree() {
       return this._invoke("getStylesInSubtree");
     },
 
-    async _invoke(method) {
+    async _invoke(method, parameters) {
       return new Promise(resolve => {
         const timestamp = Date.now();
 
@@ -71,6 +71,7 @@
         port.postMessage({
           namespace: "browser.experiments.inspectedNode",
           method,
+          parameters,
           timestamp,
         });
       });

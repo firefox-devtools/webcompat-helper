@@ -60,16 +60,13 @@ this.inspectedNode = class extends ExtensionAPI {
         await inspector.pageStyle.getApplied(node, option);
 
       return styles.map(({ rule }) => {
-        const { actorID: ruleId } = rule;
         let { declarations } = rule;
         declarations = declarations.filter(d => !d.commentOffsets);
-        return declarations.length
-                 ? { ruleId, declarations, node: _getNodeInfo(node) }
-                 : null;
-      }).filter(rule => !!rule);
+        return declarations.length ? declarations : null;
+      }).filter(declarations => !!declarations);
     };
 
-    const _getStyle = async (clientId) => {
+    const _getStyle = async (clientId, actorID, skipPseudo) => {
       await _setupClientIfNeeded(clientId);
 
       const { inspector } = _clients.get(clientId);
@@ -77,8 +74,8 @@ this.inspectedNode = class extends ExtensionAPI {
         return [];
       }
 
-      const node = inspector.selection.nodeFront;
-      return _getAppliedStyle(inspector, node, { skipPseudo: true });
+      const node = await inspector.walker.conn.getFrontByID(actorID);
+      return _getAppliedStyle(inspector, node, { skipPseudo });
     };
 
     const _getStylesInSubtree = async (clientId) => {
@@ -98,6 +95,7 @@ this.inspectedNode = class extends ExtensionAPI {
 
     const _getNodeInfo = node => {
       const {
+        actorID,
         id,
         className,
         attributes,
@@ -107,6 +105,7 @@ this.inspectedNode = class extends ExtensionAPI {
       } = node;
 
       return {
+        actorID,
         id,
         className: className.trim(),
         attributes,
@@ -163,8 +162,8 @@ this.inspectedNode = class extends ExtensionAPI {
             return _getNodesInSubtree(clientId);
           },
 
-          async getStyle(clientId) {
-            return _getStyle(clientId);
+          async getStyle(clientId, actorID, skipPseudo) {
+            return _getStyle(clientId, actorID, skipPseudo);
           },
 
           async getStylesInSubtree(clientId) {

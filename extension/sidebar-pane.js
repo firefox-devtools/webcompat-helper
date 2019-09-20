@@ -24,12 +24,13 @@ async function _updateSelectedNode(selectedNode) {
 
   const issues = [];
 
-  const { attributes, nodeName } = selectedNode;
+  const { actorID, attributes, nodeName } = selectedNode;
   issues.push(
     ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
 
-  const declarationBlocks = await browser.experiments.inspectedNode.getStyle();
-  for (const { declarations } of declarationBlocks) {
+  const declarationBlocks =
+    await browser.experiments.inspectedNode.getStyle(actorID, true);
+  for (const declarations of declarationBlocks) {
     issues.push(
       ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
   }
@@ -71,19 +72,24 @@ async function _updateSubtree(selectedNode) {
     )
   }
 
-  progressEl.textContent = "Getting all descendants of the selected node";
-  const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
-
   progressEl.textContent = "Getting web compatibility issues for CSS styles";
-  for (const { node, declarations } of declarationBlocks) {
-    issues.push(
-      ...
-       _webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers)
-                 .map(issue => {
-                   issue.node = node;
-                   return issue;
-                 })
-    )
+  for (const node of nodesInSubtree) {
+    if (!_isValidElement(node)) {
+      continue
+    }
+
+    const declarationBlocks =
+      await browser.experiments.inspectedNode.getStyle(node.actorID, false);
+    for (const declarations of declarationBlocks) {
+      issues.push(
+        ...
+         _webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers)
+        .map(issue => {
+          issue.node = node;
+          return issue;
+        })
+      );
+    }
   }
 
   progressEl.textContent = "Grouping all issues";
