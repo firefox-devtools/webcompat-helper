@@ -18,7 +18,7 @@ async function _updateSelectedNode(selectedNode) {
   const issueListEl = document.querySelector("#selected ul");
   issueListEl.innerHTML = "";
 
-  _asyncRenderNodes(0, [selectedNode], true, issueListEl, []).then(() => {
+  _recursiveNodesIssuesRendering(0, [selectedNode], true, issueListEl, []).then(() => {
     if (!issueListEl.querySelector("li")) {
       _renderNoIssue(issueListEl);
     }
@@ -37,7 +37,7 @@ async function _updateSubtree(selectedNode) {
 
   progressEl.textContent = "Getting web compatibility issues";
   issueListEl.innerHTML = "";
-  _asyncRenderNodes(0, nodesInSubtree, false, issueListEl, []).then(() => {
+  _recursiveNodesIssuesRendering(0, nodesInSubtree, false, issueListEl, []).then(() => {
     subtreeEl.classList.remove("processing");
     if (!issueListEl.querySelector("li")) {
       _renderNoIssue(issueListEl);
@@ -45,7 +45,24 @@ async function _updateSubtree(selectedNode) {
   });
 }
 
-async function _asyncRenderNodes(index, nodes, skipPseudo, listEl, groupsCache) {
+/**
+ * The given nodes are analysed and rendered one by one recursively.
+ * Thus, the item of the result is appended to the given `listEl` sequentially.
+ *
+ * @param {Number} index
+ *        The index of the node to be analyzed and rendered.
+ * @param {Array} nodes
+ *        The nodes to be analyzed and rendered. This parameter assumes the node obtained
+ *        with `getNode` or `getNodesInSubtree` of `browser.experiments.inspectedNode`.
+ * @param {Boolean} skipPseudo
+ *        Exclude styles applied to pseudo elements of the provided node.
+ * @param {Element} listEl
+ *        The <ul> element the result is appended to.
+ * @param {Array} groupsCache
+ *        This is used inside this function only.
+ */
+async function _recursiveNodesIssuesRendering(index, nodes,
+                                              skipPseudo, listEl, groupsCache) {
   const node = nodes[index];
   if (!node) {
     return;
@@ -66,7 +83,7 @@ async function _asyncRenderNodes(index, nodes, skipPseudo, listEl, groupsCache) 
     }
   }
 
-  await _asyncRenderNodes(index + 1, nodes, skipPseudo, listEl, groupsCache);
+  await _recursiveNodesIssuesRendering(index + 1, nodes, skipPseudo, listEl, groupsCache);
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {

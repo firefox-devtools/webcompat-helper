@@ -48,8 +48,8 @@
       return this._invoke("getNodesInSubtree");
     },
 
-    async getStyle(actoriID, skipPseudo) {
-      return this._invoke("getStyle", [actoriID, skipPseudo]);
+    async getStyle(actorID, skipPseudo) {
+      return this._invoke("getStyle", [actorID, skipPseudo]);
     },
 
     async getStylesInSubtree() {
