@@ -14,7 +14,7 @@ browser.runtime.onConnect.addListener(port => {
     port.postMessage({ method: "onChange" });
   }
 
-  const onMessage = async ({ namespace, method, timestamp }) => {
+  const onMessage = async ({ namespace, method, parameters = [], timestamp }) => {
     if (namespace !== "browser.experiments.inspectedNode") {
       return;
     }
@@ -25,7 +25,8 @@ browser.runtime.onConnect.addListener(port => {
         break;
       }
       default: {
-        const result = await browser.experiments.inspectedNode[method](clientId);
+        const result =
+          await browser.experiments.inspectedNode[method](clientId, ...parameters);
         port.postMessage({ method, timestamp, result });
         break;
       }

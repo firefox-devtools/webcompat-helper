@@ -16,37 +16,18 @@ async function _update() {
 
 async function _updateSelectedNode(selectedNode) {
   const issueListEl = document.querySelector("#selected ul");
+  issueListEl.innerHTML = "";
 
-  if (!_isValidElement(selectedNode)) {
-    _render([], issueListEl);
-    return;
-  }
-
-  const issues = [];
-
-  const { attributes, nodeName } = selectedNode;
-  issues.push(
-    ..._webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers));
-
-  const declarationBlocks = await browser.experiments.inspectedNode.getStyle();
-  for (const { declarations } of declarationBlocks) {
-    issues.push(
-      ..._webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers));
-  }
-
-  _render(issues, issueListEl);
+  _recursiveNodesIssuesRendering(0, [selectedNode], true, issueListEl, []).then(() => {
+    if (!issueListEl.querySelector("li")) {
+      _renderNoIssue(issueListEl);
+    }
+  });
 }
 
 async function _updateSubtree(selectedNode) {
   const subtreeEl = document.getElementById("subtree");
   const issueListEl = subtreeEl.querySelector("ul");
-
-  if (!_isValidElement(selectedNode)) {
-    _render([], issueListEl);
-    return;
-  }
-
-  const issues = [];
 
   subtreeEl.classList.add("processing");
   const progressEl = subtreeEl.querySelector("aside label");
@@ -54,104 +35,110 @@ async function _updateSubtree(selectedNode) {
   progressEl.textContent = "Getting all descendants of the selected node";
   const nodesInSubtree = await browser.experiments.inspectedNode.getNodesInSubtree();
 
-  progressEl.textContent = "Getting web compatibility issues for HTML element";
-  for (const node of nodesInSubtree) {
-    if (!_isValidElement(node)) {
-      continue
+  progressEl.textContent = "Getting web compatibility issues";
+  issueListEl.innerHTML = "";
+  _recursiveNodesIssuesRendering(0, nodesInSubtree, false, issueListEl, []).then(() => {
+    subtreeEl.classList.remove("processing");
+    if (!issueListEl.querySelector("li")) {
+      _renderNoIssue(issueListEl);
     }
-
-    const { attributes, nodeName } = node;
-    issues.push(
-      ...
-       _webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers)
-                 .map(issue => {
-                   issue.node = node;
-                   return issue;
-                 })
-    )
-  }
-
-  progressEl.textContent = "Getting all descendants of the selected node";
-  const declarationBlocks = await browser.experiments.inspectedNode.getStylesInSubtree();
-
-  progressEl.textContent = "Getting web compatibility issues for CSS styles";
-  for (const { node, declarations } of declarationBlocks) {
-    issues.push(
-      ...
-       _webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers)
-                 .map(issue => {
-                   issue.node = node;
-                   return issue;
-                 })
-    )
-  }
-
-  progressEl.textContent = "Grouping all issues";
-  const issueGroups = _groupIssues(issues);
-
-  progressEl.textContent = "Rendering all issues";
-  _render(issueGroups, issueListEl);
-
-  subtreeEl.classList.remove("processing");
+  });
 }
 
 /**
- * Group by the issue cause.
- * @param {Array} issues
- *        The issue list which WebCompat library returns. Also the issue in the list
- *        assume to contain the node information additionaly.
- * @return {Array}
- *         Array of issues grouped. The issue has `nodes` attribute which contains the
- *         node informations where caused the issue.
+ * The given nodes are analysed and rendered one by one recursively.
+ * Thus, the item of the result is appended to the given `listEl` sequentially.
+ *
+ * @param {Number} index
+ *        The index of the node to be analyzed and rendered.
+ * @param {Array} nodes
+ *        The nodes to be analyzed and rendered. This parameter assumes the node obtained
+ *        with `getNode` or `getNodesInSubtree` of `browser.experiments.inspectedNode`.
+ * @param {Boolean} skipPseudo
+ *        Exclude styles applied to pseudo elements of the provided node.
+ * @param {Element} listEl
+ *        The <ul> element the result is appended to.
+ * @param {Array} groupsCache
+ *        This is used inside this function only.
  */
-function _groupIssues(issues) {
-  const issueGroups = [];
+async function _recursiveNodesIssuesRendering(index, nodes,
+                                              skipPseudo, listEl, groupsCache) {
+  const node = nodes[index];
+  if (!node) {
+    return;
+  }
 
-  for (const issue of issues) {
-    let issueGroup = issueGroups.find(i => {
-      return i.type === issue.type &&
-             i.property === issue.property &&
-             i.element === issue.element &&
-             i.attribute === issue.attribute &&
-             i.value === issue.value;
-    });
+  if (_isValidElement(node)) {
+    const { actorID, attributes, nodeName } = node;
+    const htmlIssues =
+      _webcompat.getHTMLElementIssues(nodeName, attributes, _targetBrowsers);
+    _appendIssues(htmlIssues, node, listEl, groupsCache);
 
-    if (!issueGroup) {
-      issueGroup = Object.assign({}, issue, { nodes: [], node: undefined });
-      issueGroups.push(issueGroup);
-    }
-
-    const isNodeContainedInGroup = issueGroup.nodes.some(n => {
-      return n.nodeName === issue.node.nodeName &&
-             n.nodeType === issue.node.nodeType &&
-             n.id === issue.node.id &&
-             n.className === issue.node.className;
-    });
-
-    if (!isNodeContainedInGroup) {
-      issueGroup.nodes.push(issue.node);
+    const declarationBlocks =
+      await browser.experiments.inspectedNode.getStyle(actorID, skipPseudo);
+    for (const declarations of declarationBlocks) {
+      const cssIssues =
+        _webcompat.getCSSDeclarationBlockIssues(declarations, _targetBrowsers);
+      _appendIssues(cssIssues, node, listEl, groupsCache);
     }
   }
 
-  return issueGroups;
+  await _recursiveNodesIssuesRendering(index + 1, nodes, skipPseudo, listEl, groupsCache);
 }
 
 function _isValidElement({ nodeType, isCustomElement }) {
   return nodeType === Node.ELEMENT_NODE && !isCustomElement;
 }
 
-function _render(issues, issueListEl) {
-  issueListEl.innerHTML = "";
-
-  if (!issues.length) {
-    const noIssueEl = document.createElement("li");
-    noIssueEl.textContent = "No issues";
-    issueListEl.appendChild(noIssueEl);
-  } else {
-    for (const issue of issues) {
-      issueListEl.appendChild(_renderIssue(issue));
-    }
+function _appendIssues(issues, node, listEl, issueGroups) {
+  for (const issue of issues) {
+    _appendIssue(issue, node, listEl, issueGroups);
   }
+}
+
+function _appendIssue(issue, node, listEl, issueGroups) {
+  let issueGroup = issueGroups.find(i => {
+    return i.type === issue.type &&
+           i.property === issue.property &&
+           i.element === issue.element &&
+           i.attribute === issue.attribute &&
+           i.value === issue.value;
+  });
+
+  if (!issueGroup) {
+    issueGroup = Object.assign({}, issue, { nodes: [] });
+    issueGroups.push(issueGroup);
+  }
+
+  const isNodeContainedInGroup = issueGroup.nodes.some(n => {
+    return n.nodeName === node.nodeName &&
+           n.nodeType === node.nodeType &&
+           n.id === node.id &&
+           n.className === node.className;
+  });
+
+  if (!isNodeContainedInGroup) {
+    issueGroup.nodes.push(node);
+
+    if (issueGroup.view) {
+      // Remove occurrences element in order to update occurrences only.
+      issueGroup.view.querySelector(".occurrences").remove();
+    } else {
+      // Append new view for this issue.
+      const view = _renderIssue(issueGroup);
+      listEl.appendChild(view);
+      issueGroup.view = view;
+    }
+
+    issueGroup.view.append(_renderOccurrences(issueGroup.nodes));
+  }
+}
+
+
+function _renderNoIssue(listEl) {
+  const noIssueEl = document.createElement("li");
+  noIssueEl.textContent = "No issues";
+  listEl.appendChild(noIssueEl);
 }
 
 function _renderIssue(issue) {
@@ -162,15 +149,10 @@ function _renderIssue(issue) {
   issueEl.appendChild(predicateEl);
 
   issueEl.classList.add((issue.deprecated ? "warning" : "information"));
-
-  if (issue.nodes) {
-    issueEl.append(_renderOccurrences(issue));
-  }
-
   return issueEl;
 }
 
-function _renderOccurrences({ nodes }) {
+function _renderOccurrences(nodes) {
   const occurrencesEl = document.createElement("section");
   occurrencesEl.classList.add("occurrences");
 
