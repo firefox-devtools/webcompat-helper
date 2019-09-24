@@ -118,22 +118,9 @@ function _appendIssue(issue, node, listEl, issueGroups) {
   });
 
   if (!isNodeContainedInGroup) {
-    issueGroup.nodes.push(node);
-
-    if (issueGroup.view) {
-      // Remove occurrences element in order to update occurrences only.
-      issueGroup.view.querySelector(".occurrences").remove();
-    } else {
-      // Append new view for this issue.
-      const view = _renderIssue(issueGroup);
-      listEl.appendChild(view);
-      issueGroup.view = view;
-    }
-
-    issueGroup.view.append(_renderOccurrences(issueGroup.nodes));
+    _appendOccurrence(issueGroup, node, listEl);
   }
 }
-
 
 function _renderNoIssue(listEl) {
   const noIssueEl = document.createElement("li");
@@ -152,38 +139,53 @@ function _renderIssue(issue) {
   return issueEl;
 }
 
-function _renderOccurrences(nodes) {
-  const occurrencesEl = document.createElement("section");
-  occurrencesEl.classList.add("occurrences");
+function _appendOccurrence(issueGroup, occurrencedNode, issueListEl) {
+  issueGroup.nodes.push(occurrencedNode);
 
-  const nodelistEl = document.createElement("ul");
-  for (const { id, className, nodeName } of nodes) {
-    const nodeEl = document.createElement("li");
-    nodeEl.append(_renderTerm(nodeName.toLowerCase(), ["node-name"]));
+  if (issueGroup.nodes.length === 1) {
+    // Append new view for this issue.
+    const issueGroupEl = _renderIssue(issueGroup);
+    issueListEl.appendChild(issueGroupEl);
 
-    if (id) {
-      nodeEl.append(_renderTerm(`#${ id }`, ["node-id"]));
-    } else if (className.length) {
-      nodeEl.append(_renderTerm(`.${ className.replace(/\s+/g, ".") }`, ["node-class"]));
+    // Prepare the element to show the occurrences.
+    const sectionEl = document.createElement("section");
+    sectionEl.classList.add("occurrences");
+    const occurrencesEl = document.createElement("ul");
+    issueGroupEl.append(sectionEl);
+    sectionEl.append(occurrencesEl);
+    issueGroup.view = sectionEl;
+  } else {
+    if (issueGroup.nodes.length === 2) {
+      // As found multiple occurrences, change to the collapsable element.
+      const listEl = issueGroup.view.querySelector("ul");
+      const summaryEl = document.createElement("summary");
+      const detailsEl = document.createElement("details");
+      detailsEl.append(summaryEl, listEl);
+      issueGroup.view.append(detailsEl);
     }
 
-    nodeEl.addEventListener("click", _onClickNodeSelector);
-    nodelistEl.append(nodeEl);
+    const summaryEl = issueGroup.view.querySelector("summary");
+    summaryEl.textContent = `${issueGroup.nodes.length} occurrences`;
   }
 
-  if (nodes.length !== 1) {
-    const summaryEl = document.createElement("summary");
-    summaryEl.textContent = `${nodes.length} occurrences`;
+  const listEl = issueGroup.view.querySelector("ul");
+  listEl.append(_renderOccurrence(occurrencedNode));
+}
 
-    const detailsEl = document.createElement("details");
-    detailsEl.append(summaryEl, nodelistEl);
+function _renderOccurrence({id, className, nodeName}) {
+  const occurrenceEl = document.createElement("li");
+  occurrenceEl.append(_renderTerm(nodeName.toLowerCase(), ["node-name"]));
 
-    occurrencesEl.append(detailsEl);
-  } else {
-    occurrencesEl.append(nodelistEl);
+  if (id) {
+    occurrenceEl.append(_renderTerm(`#${ id }`, ["node-id"]));
+  } else if (className.length) {
+    occurrenceEl.append(
+      _renderTerm(`.${ className.replace(/\s+/g, ".") }`, ["node-class"]));
   }
 
-  return occurrencesEl;
+  occurrenceEl.addEventListener("click", _onClickNodeSelector);
+
+  return occurrenceEl;
 }
 
 function _renderSubject(issue) {
