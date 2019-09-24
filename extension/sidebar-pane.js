@@ -15,11 +15,11 @@ async function _update() {
 }
 
 async function _updateSelectedNode(selectedNode) {
-  // Get new <ul> element to avoid updating by previous processes.
-  const issueListEl = _getNewULElement("#selected ul");
+  // Get new <ul> element to avoid updating by previous rendering.
+  const issueListEl = _getIssuesListRootElement("#selected ul");
 
   _recursiveNodesIssuesRendering(0, [selectedNode], true, issueListEl, []).then(() => {
-    if (!_isCurrentProcess(issueListEl)) {
+    if (!_isCurrentlyRendering(issueListEl)) {
       return;
     }
 
@@ -31,8 +31,8 @@ async function _updateSelectedNode(selectedNode) {
 
 async function _updateSubtree(selectedNode) {
   const subtreeEl = document.getElementById("subtree");
-  // Get new <ul> element to avoid updating by previous processes.
-  const issueListEl = _getNewULElement("#subtree ul");
+  // Get new <ul> element to avoid updating by previous rendering.
+  const issueListEl = _getIssuesListRootElement("#subtree ul");
 
   subtreeEl.classList.add("processing");
   const progressEl = subtreeEl.querySelector("aside label");
@@ -43,7 +43,7 @@ async function _updateSubtree(selectedNode) {
   progressEl.textContent = "Getting web compatibility issues";
   issueListEl.innerHTML = "";
   _recursiveNodesIssuesRendering(0, nodesInSubtree, false, issueListEl, []).then(() => {
-    if (!_isCurrentProcess(issueListEl)) {
+    if (!_isCurrentlyRendering(issueListEl)) {
       return;
     }
 
@@ -54,14 +54,22 @@ async function _updateSubtree(selectedNode) {
   });
 }
 
-function _getNewULElement(selector) {
+/**
+ * Return <ul> element for the issues.
+ * Note: This function creates new <ul> element and replaces from old <ul> element that
+ * is matched by the given selector.
+ *
+ * @param {String} - selector
+ * @return {Element} - new <ul> element that was replaced
+ */
+function _getIssuesListRootElement(selector) {
   const oldElement = document.querySelector(selector);
   const newElement = document.createElement("ul");
   oldElement.parentElement.replaceChild(newElement, oldElement);
   return newElement;
 }
 
-function _isCurrentProcess(listEl) {
+function _isCurrentlyRendering(listEl) {
   return !!listEl.parentElement;
 }
 
@@ -83,8 +91,9 @@ function _isCurrentProcess(listEl) {
  */
 async function _recursiveNodesIssuesRendering(index, nodes,
                                               skipPseudo, listEl, groupsCache) {
-  if (!_isCurrentProcess(listEl)) {
-    // New updating process is running.
+  if (!_isCurrentlyRendering(listEl)) {
+    // New rendering is running.
+    listEl.remove();
     return;
   }
 
