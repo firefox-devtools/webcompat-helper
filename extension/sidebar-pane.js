@@ -15,10 +15,14 @@ async function _update() {
 }
 
 async function _updateSelectedNode(selectedNode) {
-  const issueListEl = document.querySelector("#selected ul");
-  issueListEl.innerHTML = "";
+  // Get new <ul> element to avoid updating by previous processes.
+  const issueListEl = _getNewULElement("#selected ul");
 
   _recursiveNodesIssuesRendering(0, [selectedNode], true, issueListEl, []).then(() => {
+    if (!_isCurrentProcess(issueListEl)) {
+      return;
+    }
+
     if (!issueListEl.querySelector("li")) {
       _renderNoIssue(issueListEl);
     }
@@ -27,7 +31,8 @@ async function _updateSelectedNode(selectedNode) {
 
 async function _updateSubtree(selectedNode) {
   const subtreeEl = document.getElementById("subtree");
-  const issueListEl = subtreeEl.querySelector("ul");
+  // Get new <ul> element to avoid updating by previous processes.
+  const issueListEl = _getNewULElement("#subtree ul");
 
   subtreeEl.classList.add("processing");
   const progressEl = subtreeEl.querySelector("aside label");
@@ -38,11 +43,26 @@ async function _updateSubtree(selectedNode) {
   progressEl.textContent = "Getting web compatibility issues";
   issueListEl.innerHTML = "";
   _recursiveNodesIssuesRendering(0, nodesInSubtree, false, issueListEl, []).then(() => {
+    if (!_isCurrentProcess(issueListEl)) {
+      return;
+    }
+
     subtreeEl.classList.remove("processing");
     if (!issueListEl.querySelector("li")) {
       _renderNoIssue(issueListEl);
     }
   });
+}
+
+function _getNewULElement(selector) {
+  const oldElement = document.querySelector(selector);
+  const newElement = document.createElement("ul");
+  oldElement.parentElement.replaceChild(newElement, oldElement);
+  return newElement;
+}
+
+function _isCurrentProcess(listEl) {
+  return !!listEl.parentElement;
 }
 
 /**
@@ -63,6 +83,11 @@ async function _updateSubtree(selectedNode) {
  */
 async function _recursiveNodesIssuesRendering(index, nodes,
                                               skipPseudo, listEl, groupsCache) {
+  if (!_isCurrentProcess(listEl)) {
+    // New updating process is running.
+    return;
+  }
+
   const node = nodes[index];
   if (!node) {
     return;
