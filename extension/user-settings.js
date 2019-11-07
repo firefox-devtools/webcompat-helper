@@ -4,7 +4,7 @@ const TARGET_BROWSER_NAMES = [
   "firefox", "firefox_android",
   "chrome", "chrome_android",
   "safari", "safari_ios",
-  "edge", "edge_mobile",
+  "edge",
 ];
 
 const TARGET_BROWSER_STATUSES = [
@@ -43,6 +43,11 @@ class UserSettings {
     const browsers = this._webCompatData.browsers;
     const targets = [];
     for (const id of TARGET_BROWSER_NAMES) {
+      if (!browsers[id]) {
+        console.error(id + " is not found");
+        continue;
+      }
+
       const { name, releases } = browsers[id];
 
       for (const version in releases) {
